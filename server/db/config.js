@@ -14,6 +14,7 @@ export function dbConfigFromEnv(env = process.env) {
     user: env.DB_USERNAME || decodeURIComponent(u.username) || undefined,
     password: env.DB_PASSWORD ?? (decodeURIComponent(u.password) || undefined),
     ssl: u.searchParams.get('ssl') === 'true',
+    sslCa: env.DB_SSL_CA?.replace(/\\n/g, '\n'),
   };
 }
 export const safeDescribe = (c) => `${c.user || '?'}@${c.host}:${c.port}/${c.database}`; // never prints the password
