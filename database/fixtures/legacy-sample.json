@@ -1,0 +1,1972 @@
+{
+ "counters": {
+  "user": 9,
+  "staff": 8,
+  "bill": 30,
+  "ledger": 57,
+  "receipt": 27,
+  "complaint": 11,
+  "notice": 3,
+  "visitor": 2
+ },
+ "config": {
+  "ratePerSqft": 6.5,
+  "dueDays": 10,
+  "lateFee": {
+   "mode": "none",
+   "graceDays": 0,
+   "value": 0
+  },
+  "dutyManager": "Duty Manager (demo)",
+  "demoOtp": "123456",
+  "visitorPhotoRetentionDays": 90
+ },
+ "users": [
+  {
+   "id": "U-001",
+   "name": "Neeraj Kulkarni",
+   "phone": "9000000001",
+   "role": "resident",
+   "flatNo": "T07-1203",
+   "relation": "owner",
+   "demo": false
+  },
+  {
+   "id": "U-002",
+   "name": "Swati Joshi",
+   "phone": "9000000002",
+   "role": "resident",
+   "flatNo": "T12-0408",
+   "relation": "tenant",
+   "demo": false
+  },
+  {
+   "id": "U-003",
+   "name": "Aamir Shaikh",
+   "phone": "9000000003",
+   "role": "resident",
+   "flatNo": "T21-1601",
+   "relation": "owner",
+   "demo": false
+  },
+  {
+   "id": "U-004",
+   "name": "Demo Resident A",
+   "phone": "9000000004",
+   "role": "resident",
+   "flatNo": "T03-0502",
+   "relation": "owner",
+   "demo": true
+  },
+  {
+   "id": "U-005",
+   "name": "Demo Resident B",
+   "phone": "9000000005",
+   "role": "resident",
+   "flatNo": "T15-0907",
+   "relation": "tenant",
+   "demo": true
+  },
+  {
+   "id": "U-006",
+   "name": "Family Member of T07 (demo)",
+   "phone": "9000000011",
+   "role": "resident",
+   "flatNo": "T07-1203",
+   "relation": "family",
+   "demo": true
+  },
+  {
+   "id": "U-007",
+   "name": "Help Desk Staff (demo)",
+   "phone": "9000000010",
+   "role": "helpdesk",
+   "flatNo": null,
+   "relation": null,
+   "demo": true
+  },
+  {
+   "id": "U-008",
+   "name": "Committee Member (demo)",
+   "phone": "9000000020",
+   "role": "committee",
+   "flatNo": null,
+   "relation": null,
+   "demo": true
+  },
+  {
+   "id": "U-009",
+   "name": "Gate Guard, Gate 1 (demo)",
+   "phone": "9000000030",
+   "role": "guard",
+   "flatNo": null,
+   "relation": null,
+   "demo": true
+  }
+ ],
+ "flats": [
+  {
+   "flatNo": "T07-1203",
+   "tower": 7,
+   "area": 1150,
+   "upiIds": [
+    "neeraj.k@oksbi"
+   ],
+   "paymentRef": "NST-T07-1203"
+  },
+  {
+   "flatNo": "T12-0408",
+   "tower": 12,
+   "area": 980,
+   "upiIds": [
+    "swati.joshi@okaxis"
+   ],
+   "paymentRef": "NST-T12-0408"
+  },
+  {
+   "flatNo": "T21-1601",
+   "tower": 21,
+   "area": 1640,
+   "upiIds": [
+    "aamir.shaikh@okhdfc"
+   ],
+   "paymentRef": "NST-T21-1601"
+  },
+  {
+   "flatNo": "T03-0502",
+   "tower": 3,
+   "area": 1200,
+   "upiIds": [
+    "demo.a@okicici"
+   ],
+   "demo": true,
+   "paymentRef": "NST-T03-0502"
+  },
+  {
+   "flatNo": "T15-0907",
+   "tower": 15,
+   "area": 850,
+   "upiIds": [
+    "demo.b@ybl"
+   ],
+   "demo": true,
+   "paymentRef": "NST-T15-0907"
+  }
+ ],
+ "bills": [
+  {
+   "id": "BILL-0001",
+   "flatNo": "T07-1203",
+   "period": "2026-06",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-06-01",
+   "dueDate": "2026-06-11"
+  },
+  {
+   "id": "BILL-0002",
+   "flatNo": "T07-1203",
+   "period": "2026-07",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-07-01",
+   "dueDate": "2026-07-11"
+  },
+  {
+   "id": "BILL-0003",
+   "flatNo": "T07-1203",
+   "period": "2026-08",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-08-01",
+   "dueDate": "2026-08-11"
+  },
+  {
+   "id": "BILL-0004",
+   "flatNo": "T07-1203",
+   "period": "2026-09",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-09-01",
+   "dueDate": "2026-09-11"
+  },
+  {
+   "id": "BILL-0005",
+   "flatNo": "T07-1203",
+   "period": "2026-10",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-10-01",
+   "dueDate": "2026-10-11"
+  },
+  {
+   "id": "BILL-0006",
+   "flatNo": "T07-1203",
+   "period": "2026-11",
+   "area": 1150,
+   "rate": 6.5,
+   "amount": 7475,
+   "issueDate": "2026-11-01",
+   "dueDate": "2026-11-11"
+  },
+  {
+   "id": "BILL-0007",
+   "flatNo": "T12-0408",
+   "period": "2026-04",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-04-01",
+   "dueDate": "2026-04-11"
+  },
+  {
+   "id": "BILL-0008",
+   "flatNo": "T12-0408",
+   "period": "2026-05",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-05-01",
+   "dueDate": "2026-05-11"
+  },
+  {
+   "id": "BILL-0009",
+   "flatNo": "T12-0408",
+   "period": "2026-06",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-06-01",
+   "dueDate": "2026-06-11"
+  },
+  {
+   "id": "BILL-0010",
+   "flatNo": "T12-0408",
+   "period": "2026-07",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-07-01",
+   "dueDate": "2026-07-11"
+  },
+  {
+   "id": "BILL-0011",
+   "flatNo": "T12-0408",
+   "period": "2026-08",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-08-01",
+   "dueDate": "2026-08-11"
+  },
+  {
+   "id": "BILL-0012",
+   "flatNo": "T12-0408",
+   "period": "2026-09",
+   "area": 980,
+   "rate": 6.5,
+   "amount": 6370,
+   "issueDate": "2026-09-07",
+   "dueDate": "2026-09-17"
+  },
+  {
+   "id": "BILL-0013",
+   "flatNo": "T21-1601",
+   "period": "2026-05",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-05-01",
+   "dueDate": "2026-05-11"
+  },
+  {
+   "id": "BILL-0014",
+   "flatNo": "T21-1601",
+   "period": "2026-06",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-06-01",
+   "dueDate": "2026-06-11"
+  },
+  {
+   "id": "BILL-0015",
+   "flatNo": "T21-1601",
+   "period": "2026-07",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-07-01",
+   "dueDate": "2026-07-11"
+  },
+  {
+   "id": "BILL-0016",
+   "flatNo": "T21-1601",
+   "period": "2026-08",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-08-01",
+   "dueDate": "2026-08-11"
+  },
+  {
+   "id": "BILL-0017",
+   "flatNo": "T21-1601",
+   "period": "2026-09",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-09-01",
+   "dueDate": "2026-09-11"
+  },
+  {
+   "id": "BILL-0018",
+   "flatNo": "T21-1601",
+   "period": "2026-10",
+   "area": 1640,
+   "rate": 6.5,
+   "amount": 10660,
+   "issueDate": "2026-10-06",
+   "dueDate": "2026-10-16"
+  },
+  {
+   "id": "BILL-0019",
+   "flatNo": "T03-0502",
+   "period": "2026-06",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-06-01",
+   "dueDate": "2026-06-11"
+  },
+  {
+   "id": "BILL-0020",
+   "flatNo": "T03-0502",
+   "period": "2026-07",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-07-01",
+   "dueDate": "2026-07-11"
+  },
+  {
+   "id": "BILL-0021",
+   "flatNo": "T03-0502",
+   "period": "2026-08",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-08-01",
+   "dueDate": "2026-08-11"
+  },
+  {
+   "id": "BILL-0022",
+   "flatNo": "T03-0502",
+   "period": "2026-09",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-09-01",
+   "dueDate": "2026-09-11"
+  },
+  {
+   "id": "BILL-0023",
+   "flatNo": "T03-0502",
+   "period": "2026-10",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-10-01",
+   "dueDate": "2026-10-11"
+  },
+  {
+   "id": "BILL-0024",
+   "flatNo": "T03-0502",
+   "period": "2026-11",
+   "area": 1200,
+   "rate": 6.5,
+   "amount": 7800,
+   "issueDate": "2026-11-01",
+   "dueDate": "2026-11-11"
+  },
+  {
+   "id": "BILL-0025",
+   "flatNo": "T15-0907",
+   "period": "2026-06",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-06-01",
+   "dueDate": "2026-06-11"
+  },
+  {
+   "id": "BILL-0026",
+   "flatNo": "T15-0907",
+   "period": "2026-07",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-07-01",
+   "dueDate": "2026-07-11"
+  },
+  {
+   "id": "BILL-0027",
+   "flatNo": "T15-0907",
+   "period": "2026-08",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-08-01",
+   "dueDate": "2026-08-11"
+  },
+  {
+   "id": "BILL-0028",
+   "flatNo": "T15-0907",
+   "period": "2026-09",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-09-01",
+   "dueDate": "2026-09-11"
+  },
+  {
+   "id": "BILL-0029",
+   "flatNo": "T15-0907",
+   "period": "2026-10",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-10-01",
+   "dueDate": "2026-10-11"
+  },
+  {
+   "id": "BILL-0030",
+   "flatNo": "T15-0907",
+   "period": "2026-11",
+   "area": 850,
+   "rate": 6.5,
+   "amount": 5525,
+   "issueDate": "2026-11-01",
+   "dueDate": "2026-11-11"
+  }
+ ],
+ "ledger": [
+  {
+   "id": "L-00001",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-06-01",
+   "dueDate": "2026-06-11",
+   "amount": 7475,
+   "billId": "BILL-0001",
+   "period": "2026-06"
+  },
+  {
+   "id": "L-00002",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-06-05",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-06-05",
+   "receiptNo": "RCP-2026-000001",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00003",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-07-01",
+   "dueDate": "2026-07-11",
+   "amount": 7475,
+   "billId": "BILL-0002",
+   "period": "2026-07"
+  },
+  {
+   "id": "L-00004",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-07-05",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-07-05",
+   "receiptNo": "RCP-2026-000002",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00005",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-08-01",
+   "dueDate": "2026-08-11",
+   "amount": 7475,
+   "billId": "BILL-0003",
+   "period": "2026-08"
+  },
+  {
+   "id": "L-00006",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-08-05",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-08-05",
+   "receiptNo": "RCP-2026-000003",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00007",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-09-01",
+   "dueDate": "2026-09-11",
+   "amount": 7475,
+   "billId": "BILL-0004",
+   "period": "2026-09"
+  },
+  {
+   "id": "L-00008",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-09-05",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-09-05",
+   "receiptNo": "RCP-2026-000004",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00009",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-10-01",
+   "dueDate": "2026-10-11",
+   "amount": 7475,
+   "billId": "BILL-0005",
+   "period": "2026-10"
+  },
+  {
+   "id": "L-00010",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-10-05",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-10-05",
+   "receiptNo": "RCP-2026-000005",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00011",
+   "flatNo": "T07-1203",
+   "kind": "bill",
+   "date": "2026-11-01",
+   "dueDate": "2026-11-11",
+   "amount": 7475,
+   "billId": "BILL-0006",
+   "period": "2026-11"
+  },
+  {
+   "id": "L-00012",
+   "flatNo": "T07-1203",
+   "kind": "payment",
+   "date": "2026-11-02",
+   "amount": 7475,
+   "method": "upi",
+   "ref": "SEED-T07-1203-2026-11-02",
+   "receiptNo": "RCP-2026-000006",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00013",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-04-01",
+   "dueDate": "2026-04-11",
+   "amount": 6370,
+   "billId": "BILL-0007",
+   "period": "2026-04"
+  },
+  {
+   "id": "L-00014",
+   "flatNo": "T12-0408",
+   "kind": "payment",
+   "date": "2026-04-05",
+   "amount": 6370,
+   "method": "upi",
+   "ref": "SEED-T12-0408-2026-04-05",
+   "receiptNo": "RCP-2026-000007",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00015",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-05-01",
+   "dueDate": "2026-05-11",
+   "amount": 6370,
+   "billId": "BILL-0008",
+   "period": "2026-05"
+  },
+  {
+   "id": "L-00016",
+   "flatNo": "T12-0408",
+   "kind": "payment",
+   "date": "2026-05-05",
+   "amount": 6370,
+   "method": "upi",
+   "ref": "SEED-T12-0408-2026-05-05",
+   "receiptNo": "RCP-2026-000008",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00017",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-06-01",
+   "dueDate": "2026-06-11",
+   "amount": 6370,
+   "billId": "BILL-0009",
+   "period": "2026-06"
+  },
+  {
+   "id": "L-00018",
+   "flatNo": "T12-0408",
+   "kind": "payment",
+   "date": "2026-06-05",
+   "amount": 6370,
+   "method": "upi",
+   "ref": "SEED-T12-0408-2026-06-05",
+   "receiptNo": "RCP-2026-000009",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00019",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-07-01",
+   "dueDate": "2026-07-11",
+   "amount": 6370,
+   "billId": "BILL-0010",
+   "period": "2026-07"
+  },
+  {
+   "id": "L-00020",
+   "flatNo": "T12-0408",
+   "kind": "payment",
+   "date": "2026-07-05",
+   "amount": 6370,
+   "method": "upi",
+   "ref": "SEED-T12-0408-2026-07-05",
+   "receiptNo": "RCP-2026-000010",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00021",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-08-01",
+   "dueDate": "2026-08-11",
+   "amount": 6370,
+   "billId": "BILL-0011",
+   "period": "2026-08"
+  },
+  {
+   "id": "L-00022",
+   "flatNo": "T12-0408",
+   "kind": "payment",
+   "date": "2026-08-05",
+   "amount": 6370,
+   "method": "upi",
+   "ref": "SEED-T12-0408-2026-08-05",
+   "receiptNo": "RCP-2026-000011",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00023",
+   "flatNo": "T12-0408",
+   "kind": "bill",
+   "date": "2026-09-07",
+   "dueDate": "2026-09-17",
+   "amount": 6370,
+   "billId": "BILL-0012",
+   "period": "2026-09"
+  },
+  {
+   "id": "L-00024",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-05-01",
+   "dueDate": "2026-05-11",
+   "amount": 10660,
+   "billId": "BILL-0013",
+   "period": "2026-05"
+  },
+  {
+   "id": "L-00025",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-05-05",
+   "amount": 10660,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-05-05",
+   "receiptNo": "RCP-2026-000012",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00026",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-06-01",
+   "dueDate": "2026-06-11",
+   "amount": 10660,
+   "billId": "BILL-0014",
+   "period": "2026-06"
+  },
+  {
+   "id": "L-00027",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-06-05",
+   "amount": 10660,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-06-05",
+   "receiptNo": "RCP-2026-000013",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00028",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-07-01",
+   "dueDate": "2026-07-11",
+   "amount": 10660,
+   "billId": "BILL-0015",
+   "period": "2026-07"
+  },
+  {
+   "id": "L-00029",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-07-05",
+   "amount": 10660,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-07-05",
+   "receiptNo": "RCP-2026-000014",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00030",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-08-01",
+   "dueDate": "2026-08-11",
+   "amount": 10660,
+   "billId": "BILL-0016",
+   "period": "2026-08"
+  },
+  {
+   "id": "L-00031",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-08-05",
+   "amount": 10660,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-08-05",
+   "receiptNo": "RCP-2026-000015",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00032",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-09-01",
+   "dueDate": "2026-09-11",
+   "amount": 10660,
+   "billId": "BILL-0017",
+   "period": "2026-09"
+  },
+  {
+   "id": "L-00033",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-09-05",
+   "amount": 10660,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-09-05",
+   "receiptNo": "RCP-2026-000016",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00034",
+   "flatNo": "T21-1601",
+   "kind": "bill",
+   "date": "2026-10-06",
+   "dueDate": "2026-10-16",
+   "amount": 10660,
+   "billId": "BILL-0018",
+   "period": "2026-10"
+  },
+  {
+   "id": "L-00035",
+   "flatNo": "T21-1601",
+   "kind": "payment",
+   "date": "2026-10-10",
+   "amount": 5000,
+   "method": "upi",
+   "ref": "SEED-T21-1601-2026-10-10",
+   "receiptNo": "RCP-2026-000017",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00036",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-06-01",
+   "dueDate": "2026-06-11",
+   "amount": 7800,
+   "billId": "BILL-0019",
+   "period": "2026-06"
+  },
+  {
+   "id": "L-00037",
+   "flatNo": "T03-0502",
+   "kind": "payment",
+   "date": "2026-06-05",
+   "amount": 7800,
+   "method": "upi",
+   "ref": "SEED-T03-0502-2026-06-05",
+   "receiptNo": "RCP-2026-000018",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00038",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-07-01",
+   "dueDate": "2026-07-11",
+   "amount": 7800,
+   "billId": "BILL-0020",
+   "period": "2026-07"
+  },
+  {
+   "id": "L-00039",
+   "flatNo": "T03-0502",
+   "kind": "payment",
+   "date": "2026-07-05",
+   "amount": 7800,
+   "method": "upi",
+   "ref": "SEED-T03-0502-2026-07-05",
+   "receiptNo": "RCP-2026-000019",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00040",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-08-01",
+   "dueDate": "2026-08-11",
+   "amount": 7800,
+   "billId": "BILL-0021",
+   "period": "2026-08"
+  },
+  {
+   "id": "L-00041",
+   "flatNo": "T03-0502",
+   "kind": "payment",
+   "date": "2026-08-05",
+   "amount": 7800,
+   "method": "upi",
+   "ref": "SEED-T03-0502-2026-08-05",
+   "receiptNo": "RCP-2026-000020",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00042",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-09-01",
+   "dueDate": "2026-09-11",
+   "amount": 7800,
+   "billId": "BILL-0022",
+   "period": "2026-09"
+  },
+  {
+   "id": "L-00043",
+   "flatNo": "T03-0502",
+   "kind": "payment",
+   "date": "2026-09-05",
+   "amount": 7800,
+   "method": "upi",
+   "ref": "SEED-T03-0502-2026-09-05",
+   "receiptNo": "RCP-2026-000021",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00044",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-10-01",
+   "dueDate": "2026-10-11",
+   "amount": 7800,
+   "billId": "BILL-0023",
+   "period": "2026-10"
+  },
+  {
+   "id": "L-00045",
+   "flatNo": "T03-0502",
+   "kind": "payment",
+   "date": "2026-10-05",
+   "amount": 7800,
+   "method": "upi",
+   "ref": "SEED-T03-0502-2026-10-05",
+   "receiptNo": "RCP-2026-000022",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00046",
+   "flatNo": "T03-0502",
+   "kind": "bill",
+   "date": "2026-11-01",
+   "dueDate": "2026-11-11",
+   "amount": 7800,
+   "billId": "BILL-0024",
+   "period": "2026-11"
+  },
+  {
+   "id": "L-00047",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-06-01",
+   "dueDate": "2026-06-11",
+   "amount": 5525,
+   "billId": "BILL-0025",
+   "period": "2026-06"
+  },
+  {
+   "id": "L-00048",
+   "flatNo": "T15-0907",
+   "kind": "payment",
+   "date": "2026-06-05",
+   "amount": 5525,
+   "method": "upi",
+   "ref": "SEED-T15-0907-2026-06-05",
+   "receiptNo": "RCP-2026-000023",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00049",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-07-01",
+   "dueDate": "2026-07-11",
+   "amount": 5525,
+   "billId": "BILL-0026",
+   "period": "2026-07"
+  },
+  {
+   "id": "L-00050",
+   "flatNo": "T15-0907",
+   "kind": "payment",
+   "date": "2026-07-05",
+   "amount": 5525,
+   "method": "upi",
+   "ref": "SEED-T15-0907-2026-07-05",
+   "receiptNo": "RCP-2026-000024",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00051",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-08-01",
+   "dueDate": "2026-08-11",
+   "amount": 5525,
+   "billId": "BILL-0027",
+   "period": "2026-08"
+  },
+  {
+   "id": "L-00052",
+   "flatNo": "T15-0907",
+   "kind": "payment",
+   "date": "2026-08-05",
+   "amount": 5525,
+   "method": "upi",
+   "ref": "SEED-T15-0907-2026-08-05",
+   "receiptNo": "RCP-2026-000025",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00053",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-09-01",
+   "dueDate": "2026-09-11",
+   "amount": 5525,
+   "billId": "BILL-0028",
+   "period": "2026-09"
+  },
+  {
+   "id": "L-00054",
+   "flatNo": "T15-0907",
+   "kind": "payment",
+   "date": "2026-09-05",
+   "amount": 5525,
+   "method": "upi",
+   "ref": "SEED-T15-0907-2026-09-05",
+   "receiptNo": "RCP-2026-000026",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00055",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-10-01",
+   "dueDate": "2026-10-11",
+   "amount": 5525,
+   "billId": "BILL-0029",
+   "period": "2026-10"
+  },
+  {
+   "id": "L-00056",
+   "flatNo": "T15-0907",
+   "kind": "payment",
+   "date": "2026-10-05",
+   "amount": 5525,
+   "method": "upi",
+   "ref": "SEED-T15-0907-2026-10-05",
+   "receiptNo": "RCP-2026-000027",
+   "txnId": null,
+   "note": "Seed data"
+  },
+  {
+   "id": "L-00057",
+   "flatNo": "T15-0907",
+   "kind": "bill",
+   "date": "2026-11-01",
+   "dueDate": "2026-11-11",
+   "amount": 5525,
+   "billId": "BILL-0030",
+   "period": "2026-11"
+  }
+ ],
+ "bankFiles": [],
+ "bankTxns": [],
+ "complaints": [
+  {
+   "id": "CMP-0001",
+   "flatNo": "T12-0408",
+   "tower": 12,
+   "title": "Water leak",
+   "description": "Water is leaking from the bathroom ceiling and dripping onto the floor since two days.",
+   "residentCategory": "Plumbing",
+   "aiCategory": "Plumbing",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched plumbing terms: leak, leaking, water, bathroom"
+   ],
+   "category": "Plumbing",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Water leak - Water is leaking from the bathroom ceiling and dripping onto the floor since two days.",
+   "categoryConfirmedBy": null,
+   "status": "assigned",
+   "assigneeId": "S-001",
+   "escalatedTo": null,
+   "createdAt": "2026-11-02T04:00:00.000Z",
+   "createdBy": "U-002",
+   "respondBy": "2026-11-02T12:00:00.000Z",
+   "firstResponseAt": null,
+   "resolvedAt": null,
+   "rating": null,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-11-02T04:00:00.000Z",
+     "actor": "Swati Joshi",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-11-02T04:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Plumbing / Medium (confidence 0.95). Matched plumbing terms: leak, leaking, water, bathroom"
+    },
+    {
+     "at": "2026-11-02T04:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Ramesh Patil (demo) (Plumbing)"
+    }
+   ],
+   "demo": false
+  },
+  {
+   "id": "CMP-0002",
+   "flatNo": "T03-0502",
+   "tower": 3,
+   "title": "Lift not working",
+   "description": "Tower 3 lift is not working on the left side, please repair.",
+   "residentCategory": null,
+   "aiCategory": "Lift",
+   "aiUrgency": "Medium",
+   "confidence": 0.92,
+   "reasons": [
+    "Matched lift terms: lift"
+   ],
+   "category": "Lift",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Lift not working - Tower 3 lift is not working on the left side, please repair.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-004",
+   "escalatedTo": null,
+   "createdAt": "2026-06-16T10:00:00.000Z",
+   "createdBy": "U-004",
+   "respondBy": "2026-06-16T18:00:00.000Z",
+   "firstResponseAt": "2026-06-16T13:00:00.000Z",
+   "resolvedAt": "2026-06-16T16:00:00.000Z",
+   "rating": 5,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-06-16T10:00:00.000Z",
+     "actor": "Demo Resident A",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-06-16T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Lift / Medium (confidence 0.92). Matched lift terms: lift"
+    },
+    {
+     "at": "2026-06-16T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Lift AMC Technician (demo) (Lift)"
+    },
+    {
+     "at": "2026-06-16T16:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0003",
+   "flatNo": "T15-0907",
+   "tower": 15,
+   "title": "Corridor light fused",
+   "description": "The corridor light near flat 907 is not working.",
+   "residentCategory": null,
+   "aiCategory": "Electrical",
+   "aiUrgency": "Medium",
+   "confidence": 0.43,
+   "reasons": [
+    "Matched electrical terms: light, fuse",
+    "Ambiguous between Electrical and Housekeeping"
+   ],
+   "category": "Electrical",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [
+    "Low classifier confidence"
+   ],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Corridor light fused - The corridor light near flat 907 is not working.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-003",
+   "escalatedTo": null,
+   "createdAt": "2026-07-06T10:00:00.000Z",
+   "createdBy": "U-005",
+   "respondBy": "2026-07-06T18:00:00.000Z",
+   "firstResponseAt": "2026-07-06T13:00:00.000Z",
+   "resolvedAt": "2026-07-07T06:00:00.000Z",
+   "rating": 4,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-07-06T10:00:00.000Z",
+     "actor": "Demo Resident B",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-07-06T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Electrical / Medium (confidence 0.43). Matched electrical terms: light, fuse; Ambiguous between Electrical and Housekeeping"
+    },
+    {
+     "at": "2026-07-06T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Anil Pawar (demo) (Electrical)"
+    },
+    {
+     "at": "2026-07-07T06:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0004",
+   "flatNo": "T07-1203",
+   "tower": 7,
+   "title": "Garbage not collected",
+   "description": "Garbage was not collected from our floor for two days, dirty smell.",
+   "residentCategory": null,
+   "aiCategory": "Housekeeping",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched housekeeping terms: garbage, dirty, smell"
+   ],
+   "category": "Housekeeping",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Garbage not collected - Garbage was not collected from our floor for two days, dirty smell.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-005",
+   "escalatedTo": null,
+   "createdAt": "2026-07-26T10:00:00.000Z",
+   "createdBy": "U-001",
+   "respondBy": "2026-07-26T18:00:00.000Z",
+   "firstResponseAt": "2026-07-26T13:00:00.000Z",
+   "resolvedAt": "2026-07-27T16:00:00.000Z",
+   "rating": 3,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 1,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-07-26T10:00:00.000Z",
+     "actor": "Neeraj Kulkarni",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-07-26T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Housekeeping / Medium (confidence 0.95). Matched housekeeping terms: garbage, dirty, smell"
+    },
+    {
+     "at": "2026-07-26T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Sunita Jadhav (demo) (Housekeeping)"
+    },
+    {
+     "at": "2026-07-27T16:00:00.000Z",
+     "actor": "Demo data",
+     "action": "reopened",
+     "detail": "Reopened once, then resolved again (demo history)"
+    },
+    {
+     "at": "2026-07-27T16:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0005",
+   "flatNo": "T21-1601",
+   "tower": 21,
+   "title": "Tap leakage",
+   "description": "Kitchen tap is leaking continuously.",
+   "residentCategory": null,
+   "aiCategory": "Plumbing",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched plumbing terms: leak, leaking, leakage, tap"
+   ],
+   "category": "Plumbing",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Tap leakage - Kitchen tap is leaking continuously.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-002",
+   "escalatedTo": null,
+   "createdAt": "2026-08-05T10:00:00.000Z",
+   "createdBy": "U-003",
+   "respondBy": "2026-08-05T18:00:00.000Z",
+   "firstResponseAt": "2026-08-05T13:00:00.000Z",
+   "resolvedAt": "2026-08-05T19:00:00.000Z",
+   "rating": 5,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-08-05T10:00:00.000Z",
+     "actor": "Aamir Shaikh",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-08-05T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Plumbing / Medium (confidence 0.95). Matched plumbing terms: leak, leaking, leakage, tap"
+    },
+    {
+     "at": "2026-08-05T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Suresh Gaikwad (demo) (Plumbing)"
+    },
+    {
+     "at": "2026-08-05T19:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0006",
+   "flatNo": "T03-0502",
+   "tower": 3,
+   "title": "Security gate issue",
+   "description": "Guard let an unknown visitor in without calling.",
+   "residentCategory": null,
+   "aiCategory": "Security",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched security terms: security, guard, gate, visitor"
+   ],
+   "category": "Security",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Security gate issue - Guard let an unknown visitor in without calling.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-006",
+   "escalatedTo": null,
+   "createdAt": "2026-08-20T10:00:00.000Z",
+   "createdBy": "U-004",
+   "respondBy": "2026-08-20T18:00:00.000Z",
+   "firstResponseAt": "2026-08-20T13:00:00.000Z",
+   "resolvedAt": "2026-08-20T14:00:00.000Z",
+   "rating": 4,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-08-20T10:00:00.000Z",
+     "actor": "Demo Resident A",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-08-20T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Security / Medium (confidence 0.95). Matched security terms: security, guard, gate, visitor"
+    },
+    {
+     "at": "2026-08-20T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Santosh More (demo) (Security)"
+    },
+    {
+     "at": "2026-08-20T14:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0007",
+   "flatNo": "T15-0907",
+   "tower": 15,
+   "title": "Water leakage from ceiling",
+   "description": "Water seepage in living room ceiling, wall damp.",
+   "residentCategory": null,
+   "aiCategory": "Plumbing",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched plumbing terms: leak, leakage, seepage, water"
+   ],
+   "category": "Plumbing",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Water leakage from ceiling - Water seepage in living room ceiling, wall damp.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-002",
+   "escalatedTo": null,
+   "createdAt": "2026-09-04T10:00:00.000Z",
+   "createdBy": "U-005",
+   "respondBy": "2026-09-04T18:00:00.000Z",
+   "firstResponseAt": "2026-09-04T13:00:00.000Z",
+   "resolvedAt": "2026-09-06T14:00:00.000Z",
+   "rating": 3,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 1,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-09-04T10:00:00.000Z",
+     "actor": "Demo Resident B",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-09-04T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Plumbing / Medium (confidence 0.95). Matched plumbing terms: leak, leakage, seepage, water"
+    },
+    {
+     "at": "2026-09-04T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Suresh Gaikwad (demo) (Plumbing)"
+    },
+    {
+     "at": "2026-09-06T14:00:00.000Z",
+     "actor": "Demo data",
+     "action": "reopened",
+     "detail": "Reopened once, then resolved again (demo history)"
+    },
+    {
+     "at": "2026-09-06T14:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0008",
+   "flatNo": "T07-1203",
+   "tower": 7,
+   "title": "Power socket sparking",
+   "description": "Socket in bedroom is sparking when plugging in.",
+   "residentCategory": null,
+   "aiCategory": "Electrical",
+   "aiUrgency": "High",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched electrical terms: power, socket, spark, sparking",
+    "Urgency cues: sparking, spark"
+   ],
+   "category": "Electrical",
+   "urgency": "High",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Power socket sparking - Socket in bedroom is sparking when plugging in.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-003",
+   "escalatedTo": null,
+   "createdAt": "2026-09-19T10:00:00.000Z",
+   "createdBy": "U-001",
+   "respondBy": "2026-09-19T12:00:00.000Z",
+   "firstResponseAt": "2026-09-19T13:00:00.000Z",
+   "resolvedAt": "2026-09-19T13:00:00.000Z",
+   "rating": 5,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-09-19T10:00:00.000Z",
+     "actor": "Neeraj Kulkarni",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-09-19T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Electrical / High (confidence 0.95). Matched electrical terms: power, socket, spark, sparking; Urgency cues: sparking, spark"
+    },
+    {
+     "at": "2026-09-19T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Anil Pawar (demo) (Electrical)"
+    },
+    {
+     "at": "2026-09-19T13:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0009",
+   "flatNo": "T21-1601",
+   "tower": 21,
+   "title": "Staircase cleaning",
+   "description": "Staircase has not been mopped this week.",
+   "residentCategory": null,
+   "aiCategory": "Housekeeping",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched housekeeping terms: clean, cleaning, mop, staircase"
+   ],
+   "category": "Housekeeping",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Staircase cleaning - Staircase has not been mopped this week.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-005",
+   "escalatedTo": null,
+   "createdAt": "2026-10-04T10:00:00.000Z",
+   "createdBy": "U-003",
+   "respondBy": "2026-10-04T18:00:00.000Z",
+   "firstResponseAt": "2026-10-04T13:00:00.000Z",
+   "resolvedAt": "2026-10-05T00:00:00.000Z",
+   "rating": 4,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-10-04T10:00:00.000Z",
+     "actor": "Aamir Shaikh",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-10-04T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Housekeeping / Medium (confidence 0.95). Matched housekeeping terms: clean, cleaning, mop, staircase"
+    },
+    {
+     "at": "2026-10-04T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Sunita Jadhav (demo) (Housekeeping)"
+    },
+    {
+     "at": "2026-10-05T00:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0010",
+   "flatNo": "T03-0502",
+   "tower": 3,
+   "title": "Drain blocked",
+   "description": "Drain in balcony is blocked and water is stagnant.",
+   "residentCategory": null,
+   "aiCategory": "Plumbing",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched plumbing terms: water, drain, blocked"
+   ],
+   "category": "Plumbing",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Drain blocked - Drain in balcony is blocked and water is stagnant.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-002",
+   "escalatedTo": null,
+   "createdAt": "2026-10-14T10:00:00.000Z",
+   "createdBy": "U-004",
+   "respondBy": "2026-10-14T18:00:00.000Z",
+   "firstResponseAt": "2026-10-14T13:00:00.000Z",
+   "resolvedAt": "2026-10-15T12:00:00.000Z",
+   "rating": 4,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 0,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-10-14T10:00:00.000Z",
+     "actor": "Demo Resident A",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-10-14T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Plumbing / Medium (confidence 0.95). Matched plumbing terms: water, drain, blocked"
+    },
+    {
+     "at": "2026-10-14T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Suresh Gaikwad (demo) (Plumbing)"
+    },
+    {
+     "at": "2026-10-15T12:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  },
+  {
+   "id": "CMP-0011",
+   "flatNo": "T15-0907",
+   "tower": 15,
+   "title": "Lift buttons broken",
+   "description": "Lift floor buttons are not responding in tower 15.",
+   "residentCategory": null,
+   "aiCategory": "Lift",
+   "aiUrgency": "Medium",
+   "confidence": 0.95,
+   "reasons": [
+    "Matched lift terms: lift, floor button"
+   ],
+   "category": "Lift",
+   "urgency": "Medium",
+   "needsReview": false,
+   "reviewReasons": [],
+   "safety": {
+    "triggered": false,
+    "rules": []
+   },
+   "summary": "Lift buttons broken - Lift floor buttons are not responding in tower 15.",
+   "categoryConfirmedBy": null,
+   "status": "resolved",
+   "assigneeId": "S-004",
+   "escalatedTo": null,
+   "createdAt": "2026-10-24T10:00:00.000Z",
+   "createdBy": "U-005",
+   "respondBy": "2026-10-24T18:00:00.000Z",
+   "firstResponseAt": "2026-10-24T13:00:00.000Z",
+   "resolvedAt": "2026-10-24T18:00:00.000Z",
+   "rating": 4,
+   "ratingComment": "",
+   "linkedTo": null,
+   "linkedCount": 0,
+   "reopenCount": 1,
+   "photos": [],
+   "history": [
+    {
+     "at": "2026-10-24T10:00:00.000Z",
+     "actor": "Demo Resident B",
+     "action": "created",
+     "detail": "Complaint submitted"
+    },
+    {
+     "at": "2026-10-24T10:00:00.000Z",
+     "actor": "Auto-triage",
+     "action": "triage",
+     "detail": "Suggested Lift / Medium (confidence 0.95). Matched lift terms: lift, floor button"
+    },
+    {
+     "at": "2026-10-24T10:00:00.000Z",
+     "actor": "Auto-assign",
+     "action": "assigned",
+     "detail": "Suggested assignment to Lift AMC Technician (demo) (Lift)"
+    },
+    {
+     "at": "2026-10-24T18:00:00.000Z",
+     "actor": "Demo data",
+     "action": "reopened",
+     "detail": "Reopened once, then resolved again (demo history)"
+    },
+    {
+     "at": "2026-10-24T18:00:00.000Z",
+     "actor": "Demo data",
+     "action": "status",
+     "detail": "resolved (demo history)"
+    }
+   ],
+   "demo": true
+  }
+ ],
+ "staff": [
+  {
+   "id": "S-001",
+   "name": "Ramesh Patil (demo)",
+   "team": "Plumbing",
+   "phone": "9000000101",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-002",
+   "name": "Suresh Gaikwad (demo)",
+   "team": "Plumbing",
+   "phone": "9000000102",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-003",
+   "name": "Anil Pawar (demo)",
+   "team": "Electrical",
+   "phone": "9000000103",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-004",
+   "name": "Lift AMC Technician (demo)",
+   "team": "Lift",
+   "phone": "9000000104",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-005",
+   "name": "Sunita Jadhav (demo)",
+   "team": "Housekeeping",
+   "phone": "9000000105",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-006",
+   "name": "Santosh More (demo)",
+   "team": "Security",
+   "phone": "9000000106",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-007",
+   "name": "Facilities Coordinator (demo)",
+   "team": "Other",
+   "phone": "9000000107",
+   "onDuty": true,
+   "demo": true
+  },
+  {
+   "id": "S-008",
+   "name": "Duty Manager (demo)",
+   "team": "Duty",
+   "phone": "9000000099",
+   "onDuty": true,
+   "demo": true
+  }
+ ],
+ "visitors": [
+  {
+   "id": "V-0001",
+   "flatNo": "T07-1203",
+   "name": "Rahul Verma (demo)",
+   "phone": "9000000201",
+   "purpose": "Friend visit",
+   "photo": null,
+   "status": "pending",
+   "createdAt": "2026-11-03T10:00:00.000Z",
+   "createdBy": "guard",
+   "clientId": null,
+   "demo": true
+  },
+  {
+   "id": "V-0002",
+   "flatNo": "T21-1601",
+   "name": "Courier - Demo Express",
+   "phone": "9000000202",
+   "purpose": "Delivery",
+   "photo": null,
+   "status": "exited",
+   "createdAt": "2026-11-03T07:00:00.000Z",
+   "entryAt": "2026-11-03T07:10:00.000Z",
+   "exitAt": "2026-11-03T07:12:00.000Z",
+   "createdBy": "guard",
+   "clientId": null,
+   "demo": true
+  }
+ ],
+ "guestCodes": [],
+ "notices": [
+  {
+   "id": "NT-001",
+   "title": "Water tank cleaning - Towers 10 to 14",
+   "body": "Overhead tank cleaning is scheduled on Saturday 10:00 to 14:00. Please store water in advance.",
+   "postedAt": "2026-11-02T10:00:00.000Z",
+   "by": "Help Desk Staff (demo)"
+  },
+  {
+   "id": "NT-002",
+   "title": "Maintenance due date",
+   "body": "Maintenance bills are issued on the 1st of each month and fall due 10 days later. Late fees, if any, follow the society bye-laws.",
+   "postedAt": "2026-10-31T10:00:00.000Z",
+   "by": "Help Desk Staff (demo)"
+  },
+  {
+   "id": "NT-003",
+   "title": "Clubhouse booking rules",
+   "body": "Hall bookings are for residents only, up to 30 days ahead. Cancellations are free up to 24 hours before the slot.",
+   "postedAt": "2026-10-28T10:00:00.000Z",
+   "by": "Help Desk Staff (demo)"
+  }
+ ],
+ "amenities": [
+  {
+   "id": "AM-1",
+   "name": "Clubhouse Hall",
+   "openHour": 8,
+   "closeHour": 22,
+   "slotHours": 2,
+   "fee": 1500,
+   "rules": "Residents only. Up to 30 days in advance. Max 60 guests. Music off by 22:00."
+  },
+  {
+   "id": "AM-2",
+   "name": "Badminton Court",
+   "openHour": 6,
+   "closeHour": 22,
+   "slotHours": 1,
+   "fee": 100,
+   "rules": "One slot per flat per day. Non-marking shoes required."
+  },
+  {
+   "id": "AM-3",
+   "name": "Tennis Court",
+   "openHour": 6,
+   "closeHour": 21,
+   "slotHours": 1,
+   "fee": 200,
+   "rules": "Maximum 4 players. Floodlights charged within the slot fee."
+  }
+ ],
+ "bookings": [],
+ "audit": [],
+ "notifications": [],
+ "paySessions": []
+}

@@ -1,0 +1,23 @@
+{
+  "name": "nestora",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "NESTORA - smart township resident app (zero-dependency build)",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js",
+    "dev:sqlite": "node --disable-warning=ExperimentalWarning scripts/dev-sqlite.js",
+    "db:init": "node scripts/db.js init",
+    "db:seed": "node scripts/db.js seed",
+    "db:reset": "node scripts/db.js reset",
+    "db:seed-sql": "node scripts/db.js seed-sql database/seed.sql",
+    "db:export": "node scripts/db.js export-json database/export.json"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.0"
+  }
+}

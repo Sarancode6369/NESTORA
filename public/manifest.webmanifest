@@ -1,0 +1,15 @@
+{
+  "name": "NESTORA Smart Township",
+  "short_name": "NESTORA",
+  "description": "Maintenance, complaints, visitors and bookings for your township.",
+  "start_url": "/#/app/home",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAFAF7",
+  "theme_color": "#124B39",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
