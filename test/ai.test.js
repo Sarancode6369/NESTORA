@@ -267,6 +267,140 @@ test('duplicates stay visible and open when AI classifies them', async () => {
   await close();
 });
 
+// ---------------------------------------------------------------- AI Complaint Assistant tests
+test('AI Complaint Assistant endpoint: returns suggestions for category, priority, summary and handles low confidence & fallback', async () => {
+  const f = scripted(
+    ok(good({ category: 'Plumbing', priority: 'Medium', summary: 'Bathroom ceiling leak', confidence: 0.94, explanation: 'Water leakage in ceiling' })),
+    ok(good({ category: 'Other', priority: 'Low', summary: 'Vague noise', confidence: 0.45, explanation: 'Unclear issue' })),
+    httpErr(500)
+  );
+  const ai = makeAi(f);
+  const { call, login, close } = await setupApi({ classifier: ai.classifier });
+  const res = await login('9000000001');
+
+  // 1. Successful AI analysis
+  const r1 = await call('POST', '/api/complaints/analyze', { token: res, body: { title: 'Water leak', description: 'Water is leaking from the bathroom ceiling' } });
+  assert.equal(r1.status, 200);
+  assert.equal(r1.body.category, 'Plumbing');
+  assert.equal(r1.body.priority, 'Medium');
+  assert.equal(r1.body.urgency, 'Medium');
+  assert.equal(r1.body.summary, 'Bathroom ceiling leak');
+  assert.equal(r1.body.confidence, 0.94);
+  assert.equal(r1.body.method, 'groq_ai');
+  assert.equal(r1.body.needsReview, false);
+  assert.ok(Array.isArray(r1.body.categories));
+  assert.ok(Array.isArray(r1.body.priorities));
+
+  // 2. Low confidence -> manual review required
+  const r2 = await call('POST', '/api/complaints/analyze', { token: res, body: { title: 'Strange noise', description: 'Some random sound at night' } });
+  assert.equal(r2.status, 200);
+  assert.equal(r2.body.needsReview, true);
+  assert.ok(r2.body.reviewReasons.some((s) => s.includes('Low AI confidence')));
+
+  // 3. Groq API failure -> fallback state without 500 error
+  const r3 = await call('POST', '/api/complaints/analyze', { token: res, body: { title: 'Water leak', description: 'Kitchen tap leaking water profusely' } });
+  assert.equal(r3.status, 200);
+  assert.equal(r3.body.method, 'keyword_fallback');
+  assert.equal(r3.body.fallbackReason, 'http');
+  assert.equal(r3.body.category, 'Plumbing');
+
+  await close();
+});
+
+test('AI Complaint Assistant: deterministic safety escalation rules (fire, gas leakage, lift entrapment, electric shock) cannot be overridden by AI or resident', async () => {
+  // Even if AI model attempts to return Low priority, safety rules must enforce Emergency
+  const f = scripted(
+    ok(good({ category: 'Other', priority: 'Low', confidence: 0.99 })),
+    ok(good({ category: 'Other', priority: 'Low', confidence: 0.99 })),
+    ok(good({ category: 'Lift', priority: 'Low', confidence: 0.99 })),
+    ok(good({ category: 'Electrical', priority: 'Low', confidence: 0.99 }))
+  );
+  const ai = makeAi(f);
+  const { call, login, close, ctx } = await setupApi({ classifier: ai.classifier });
+  const res = await login('9000000003');
+
+  const emergencies = [
+    { title: 'Fire outbreak', desc: 'There is a fire in the parking lot and flames are visible' },
+    { title: 'Gas leakage', desc: 'Severe gas leakage in our kitchen and corridor smell of gas' },
+    { title: 'Lift entrapment', desc: 'There is lift entrapment with two people trapped inside elevator' },
+    { title: 'Electric shock', desc: 'Resident got an electric shock from the water meter wiring' },
+  ];
+
+  for (const item of emergencies) {
+    const analysis = await call('POST', '/api/complaints/analyze', { token: res, body: { title: item.title, description: item.desc } });
+    assert.equal(analysis.status, 200);
+    assert.equal(analysis.body.priority, 'Emergency', `Analysis priority for ${item.title}`);
+    assert.equal(analysis.body.safety.triggered, true, `Safety triggered for ${item.title}`);
+  }
+
+  // Resident submits with priority explicitly set to 'Low' - backend MUST reject downgrade and enforce Emergency
+  const created = await call('POST', '/api/complaints', {
+    token: res,
+    body: {
+      title: 'Gas leakage',
+      description: 'Severe gas leakage in our kitchen and corridor smell of gas',
+      category: 'Other',
+      priority: 'Low', // attempting to lower
+    },
+  });
+  assert.equal(created.status, 200);
+  const c = created.body.complaint;
+  assert.equal(c.urgency, 'Emergency');
+  assert.equal(c.priority, 'Emergency');
+  assert.equal(c.status, 'escalated');
+  assert.equal(c.safety.triggered, true);
+
+  const dbRow = await ctx.r.complaints.get(c.id);
+  assert.equal(dbRow.urgency, 'Emergency');
+  assert.equal(dbRow.status, 'escalated');
+
+  await close();
+});
+
+test('AI Complaint Assistant: allows review and correction of category and priority, saving final approved values', async () => {
+  const f = scripted(
+    ok(good({ category: 'Plumbing', priority: 'Medium', summary: 'Leaking pipe under sink', confidence: 0.95 }))
+  );
+  const ai = makeAi(f);
+  const { call, login, close, ctx } = await setupApi({ classifier: ai.classifier });
+  const res = await login('9000000001');
+
+  // Step 1: Resident analyzes complaint
+  const analysis = await call('POST', '/api/complaints/analyze', {
+    token: res,
+    body: { title: 'Dripping noise', description: 'There is water dripping behind the bathroom wall tile' },
+  });
+  assert.equal(analysis.status, 200);
+  assert.equal(analysis.body.category, 'Plumbing');
+  assert.equal(analysis.body.priority, 'Medium');
+
+  // Step 2: Resident reviews and corrects: changes category to 'Civil' and priority to 'High'
+  const submitted = await call('POST', '/api/complaints', {
+    token: res,
+    body: {
+      title: 'Dripping noise and cracked tile',
+      description: 'There is water dripping behind the bathroom wall tile and tiles are cracked',
+      category: 'Civil', // corrected
+      priority: 'High', // corrected
+      summary: 'Cracked bathroom tiles with water seepage',
+    },
+  });
+  assert.equal(submitted.status, 200);
+  const c = submitted.body.complaint;
+  assert.equal(c.category, 'Civil');
+  assert.equal(c.urgency, 'High');
+  assert.equal(c.priority, 'High');
+  assert.equal(c.summary, 'Cracked bathroom tiles with water seepage');
+
+  // Verify database persistence of approved values
+  const row = await ctx.r.complaints.get(c.id);
+  assert.equal(row.category, 'Civil');
+  assert.equal(row.urgency, 'High');
+  assert.equal(row.summary, 'Cracked bathroom tiles with water seepage');
+
+  await close();
+});
+
 // ---------------------------------------------------------------- live API (runs only when a key is configured)
 const live = process.env.GROQ_API_KEY ? test : test.skip;
 live('LIVE Groq API: real classification returns a valid, validated result (requires GROQ_API_KEY)', async () => {

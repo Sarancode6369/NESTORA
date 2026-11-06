@@ -11,7 +11,7 @@ const leave = () => { cleanups.forEach((f) => { try { f(); } catch { /* ignore *
 
 const HOME = { resident: '#/app/home', helpdesk: '#/app/desk', committee: '#/app/committee', guard: '#/app/gate' };
 const NAV = {
-  resident: [['home', 'tab_home', 'home'], ['pay', 'tab_pay', 'pay'], ['complaints', 'tab_complaints', 'msg'], ['visitors', 'tab_visitors', 'users'], ['book', 'tab_book', 'cal']],
+  resident: [['home', 'tab_home', 'home'], ['pay', 'tab_pay', 'pay'], ['complaints', 'tab_complaints', 'msg'], ['visitors', 'tab_visitors', 'users'], ['book', 'tab_book', 'cal'], ['chat', 'tab_chat', 'bot']],
   helpdesk: [['desk', 'tab_desk', 'desk'], ['payments', 'tab_payments', 'bank'], ['committee', 'tab_dashboard', 'chart'], ['admin', 'tab_admin', 'cog']],
   committee: [['committee', 'tab_dashboard', 'chart']],
 };
@@ -35,9 +35,9 @@ async function route() {
     if (role === 'guard') { document.title = 'Gate — NESTORA'; return gateView(root); }
     shell(role, page);
     const main = $('#main');
-    const title = { home: t('tab_home'), pay: t('tab_pay'), complaints: t('tab_complaints'), visitors: t('tab_visitors'), book: t('tab_book'), desk: t('tab_desk'), payments: t('tab_payments'), committee: t('tab_dashboard'), admin: t('tab_admin') }[page];
+    const title = { home: t('tab_home'), pay: t('tab_pay'), complaints: t('tab_complaints'), visitors: t('tab_visitors'), book: t('tab_book'), chat: t('tab_chat'), desk: t('tab_desk'), payments: t('tab_payments'), committee: t('tab_dashboard'), admin: t('tab_admin') }[page];
     document.title = `${title} — NESTORA`;
-    const R_ = { home: () => R.homeView(main), pay: () => R.payView(main, params), complaints: () => (parts[2] === 'new' ? R.newComplaintView(main) : parts[2] ? R.complaintDetailView(main, parts[2]) : R.complaintsView(main)), visitors: () => R.visitorsView(main), book: () => R.bookView(main), desk: () => S.deskView(main), payments: () => S.paymentsView(main), committee: () => S.committeeView(main), admin: () => S.adminView(main) };
+    const R_ = { home: () => R.homeView(main), pay: () => R.payView(main, params), complaints: () => (parts[2] === 'new' ? R.newComplaintView(main) : parts[2] ? R.complaintDetailView(main, parts[2]) : R.complaintsView(main)), visitors: () => R.visitorsView(main), book: () => R.bookView(main), chat: () => R.chatView(main), desk: () => S.deskView(main), payments: () => S.paymentsView(main), committee: () => S.committeeView(main), admin: () => S.adminView(main) };
     cleanups.push(() => { main.onclick = null; });
     return R_[page]();
   }

@@ -7,7 +7,7 @@ export async function openMysql(cfg) {
     host: cfg.host, port: cfg.port, database: cfg.database, user: cfg.user, password: cfg.password,
     waitForConnections: true, connectionLimit: cfg.poolSize || 10, charset: 'utf8mb4',
     decimalNumbers: true, dateStrings: true, timezone: 'Z', multipleStatements: false,
-    ssl: cfg.ssl ? { rejectUnauthorized: true } : undefined,
+    ssl: cfg.ssl ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } : undefined,
   });
   const make = (conn) => ({
     async query(sql, params = []) {

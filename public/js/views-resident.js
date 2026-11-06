@@ -97,6 +97,7 @@ function checkout(outstanding, done) {
 
 // ================= COMPLAINTS =================
 const CATS = ['Plumbing', 'Electrical', 'Lift', 'Security', 'Cleaning', 'Civil', 'Other'];
+const PRIOS = ['Low', 'Medium', 'High', 'Emergency'];
 export function complaintsView(root) {
   return load(root, async () => {
     const { complaints } = await api('GET', '/complaints');
@@ -113,26 +114,201 @@ async function shrink(file, max = 960, q = 0.72) {
 
 export function newComplaintView(root) {
   const photos = [];
+  let aiState = { status: 'idle', result: null, error: null }; // status: 'idle' | 'loading' | 'success' | 'error' | 'fallback'
+  let analyzeTimer = null;
+  let lastAnalyzedText = '';
+
+  const renderAiBox = () => {
+    const el = $('#c-ai-box');
+    if (!el) return;
+    if (aiState.status === 'idle') {
+      mount(el, h`<div class="tiny muted" style="margin-top:4px"><span class="chip" style="font-size:11px">AI</span> Enter details to receive automated category, priority, and summary suggestions.</div>`);
+      return;
+    }
+    if (aiState.status === 'loading') {
+      mount(el, h`<div class="card flat pad0" style="padding:14px;background:var(--soft);border:1px dashed var(--line-strong);border-radius:12px;margin-top:4px">
+        <div class="row"><span class="spinner dk"></span><span class="small"><b>${t('ai_analyzing')}</b></span></div>
+      </div>`);
+      return;
+    }
+    if (aiState.status === 'error') {
+      mount(el, h`<div class="banner bad" style="margin-top:4px">
+        <div class="row between wrap grow">
+          <div><b>${t('error')}</b><br><span class="small">${aiState.error || 'AI analysis failed'}</span></div>
+          <button type="button" class="btn sm" id="c-ai-retry" style="margin-left:auto">${t('retry')}</button>
+        </div>
+      </div>`);
+      $('#c-ai-retry')?.addEventListener('click', () => runAnalyze(true));
+      return;
+    }
+    // success or fallback
+    const res = aiState.result;
+    if (!res) return;
+    const isGroq = res.method === 'groq_ai';
+    mount(el, h`
+      ${!isGroq ? h`<div class="banner warn" style="margin-top:4px;margin-bottom:8px">
+        <div>${icon('alert')}</div>
+        <div class="grow"><b>${t('ai_fallback_notice')}</b><div class="tiny">${res.fallbackReason ? `Reason: ${res.fallbackReason}` : 'Automated keyword classifier active'}</div></div>
+      </div>` : ''}
+      <div class="card flat stack sm" style="padding:16px;background:var(--soft);border:1px solid var(--line-strong);border-radius:12px;margin-top:4px">
+        <div class="row between wrap">
+          <div class="row">
+            <span class="chip ${isGroq ? 'info' : 'warn'}">${isGroq ? (res.model ? `AI · ${res.model}` : 'AI (Groq)') : 'Keyword Fallback'}</span>
+            <span class="small" style="font-weight:700">${t('ai_suggestions')}</span>
+          </div>
+          ${res.confidence != null ? h`<span class="tiny muted">${Math.round(res.confidence * 100)}% confidence</span>` : ''}
+        </div>
+        ${res.safety?.triggered ? h`<div class="banner bad" style="margin:4px 0"><div>${icon('alert')}</div><div><b>Safety Escalation (${res.safety.labels.join(', ')})</b><br>${t('safety_banner')}</div></div>` : ''}
+        ${res.summary ? h`<div class="small" style="background:#fff;padding:8px 12px;border-radius:8px;border:1px solid var(--line)"><b>${t('ai_summary')}:</b> ${res.summary}</div>` : ''}
+        <div class="row wrap small">
+          <div>${t('ai_suggested_cat')}: <b>${t('cat_' + res.category)}</b></div>
+          <span>·</span>
+          <div>${t('ai_suggested_prio')}: <b class="${res.priority === 'Emergency' ? 'bad' : ''}">${t('urg_' + res.priority)}</b></div>
+        </div>
+        ${res.explanation ? h`<div class="tiny muted">${res.explanation}</div>` : ''}
+        ${res.needsReview ? h`<div class="chip warn" style="white-space:normal;height:auto;padding:6px 10px;line-height:1.35;align-self:flex-start">${t('ai_manual_review')}${res.reviewReasons?.length ? `: ${res.reviewReasons.join('; ')}` : ''}</div>` : ''}
+      </div>
+    `);
+  };
+
+  const runAnalyze = async (force = false) => {
+    const desc = $('#c-desc')?.value.trim() || '';
+    const title = $('#c-title')?.value.trim() || '';
+    if (desc.length < 5) return;
+    const key = `${title}:::${desc}`;
+    if (!force && key === lastAnalyzedText) return;
+    lastAnalyzedText = key;
+    aiState = { status: 'loading', result: null, error: null };
+    renderAiBox();
+    try {
+      const res = await api('POST', '/complaints/analyze', {
+        title,
+        description: desc,
+        category: $('#c-cat')?.value || null,
+      });
+      aiState = { status: res.method === 'keyword_fallback' ? 'fallback' : 'success', result: res, error: null };
+      renderAiBox();
+      if (res.category && CATS.includes(res.category)) {
+        $('#c-cat').value = res.category;
+      }
+      if (res.priority && PRIOS.includes(res.priority)) {
+        $('#c-prio').value = res.priority;
+      }
+      if (res.safety?.triggered) {
+        $('#c-prio').value = 'Emergency';
+      }
+
+      // Check for similar duplicate complaints
+      try {
+        const dupRes = await api('POST', '/complaints/duplicates/suggest', {
+          title,
+          description: desc,
+          category: $('#c-cat')?.value || res.category || null,
+        });
+        duplicates = dupRes.candidates || [];
+        renderDupBox();
+      } catch {
+        duplicates = [];
+        renderDupBox();
+      }
+    } catch (err) {
+      aiState = { status: 'error', result: null, error: err.message };
+      renderAiBox();
+    }
+  };
+
+  let duplicates = [];
+  const renderDupBox = () => {
+    const el = $('#c-dup-box');
+    if (!el) return;
+    if (!duplicates.length) { el.innerHTML = ''; return; }
+    mount(el, h`
+      <div class="card stack sm" style="background:#fffbeb;border:1px solid #fde68a;margin-top:10px">
+        <div class="row" style="color:#b45309;font-weight:700">
+          ${icon('alert')} <span>${t('dup_warning')} (${duplicates.length})</span>
+        </div>
+        <div class="small muted">${t('dup_similar_found')}</div>
+        <div class="stack" style="gap:6px">
+          ${duplicates.map((d) => h`
+            <div style="background:#fff;border:1px solid #fef3c7;border-radius:6px;padding:8px 10px">
+              <div class="row between">
+                <b>[${d.id}] ${d.title}</b>
+                <span class="chip sm info">${t('cat_' + d.category)} · ${stLabel(d.status)}</span>
+              </div>
+              <div class="tiny muted" style="margin-top:4px">${d.explanation || ''} (${t('dup_similarity')}: ${Math.round((d.similarity || 0) * 100)}%)</div>
+            </div>
+          `)}
+        </div>
+        <div class="tiny muted" style="font-style:italic">${t('dup_proceed_anyway')}</div>
+      </div>
+    `);
+  };
+
   mount(root, h`${head(t('new_complaint'), '')}
     <form class="card stack" id="cf" novalidate style="max-width:640px">
       <div class="field"><label for="c-title">${t('title')}</label><input id="c-title" class="input" maxlength="120" required autocomplete="off"><div class="errmsg" data-e="title"></div></div>
-      <div class="field"><label for="c-desc">${t('details')}</label><textarea id="c-desc" class="input" maxlength="2000" required></textarea><div class="errmsg" data-e="desc"></div></div>
-      <div class="field"><label for="c-cat">${t('category')}</label><select id="c-cat" class="input"><option value="">${t('auto_category')}</option>${CATS.map((c) => h`<option value="${c}">${t('cat_' + c)}</option>`)}</select></div>
+      <div class="field">
+        <div class="row between">
+          <label for="c-desc">${t('details')}</label>
+          <button type="button" class="btn sm ghost" id="c-ai-trigger" style="min-height:28px;padding:2px 8px;font-size:12px">${icon('refresh')}${t('ai_btn_analyze')}</button>
+        </div>
+        <textarea id="c-desc" class="input" maxlength="2000" required></textarea>
+        <div class="errmsg" data-e="desc"></div>
+        <div id="c-ai-box"></div>
+        <div id="c-dup-box"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="c-cat">${t('category')}</label><select id="c-cat" class="input"><option value="">${t('auto_category')}</option>${CATS.map((c) => h`<option value="${c}">${t('cat_' + c)}</option>`)}</select></div>
+        <div class="field"><label for="c-prio">${t('priority')}</label><select id="c-prio" class="input">${PRIOS.map((p) => h`<option value="${p}">${t('urg_' + p)}</option>`)}</select></div>
+      </div>
       <div class="field"><label>${t('photos')}</label><div class="row wrap" id="c-photos"></div><label class="btn" style="align-self:flex-start">${icon('cam')}${t('add_photo')}<input type="file" accept="image/*" id="c-file" class="sr"></label></div>
       <div class="row" style="justify-content:flex-end"><a class="btn" href="#/app/complaints">${t('cancel')}</a><button class="btn primary" type="submit" id="c-go">${t('submit')}</button></div>
     </form>`);
+
+  renderAiBox();
+
   const draw = () => mount($('#c-photos'), h`${photos.map((p, i) => h`<div style="position:relative"><img class="photo" src="${p}" alt="photo ${i + 1}"><button type="button" class="btn sm" data-rm="${i}" style="position:absolute;top:-8px;right:-8px;min-height:28px;padding:0 8px" aria-label="Remove">×</button></div>`)}`);
   $('#c-photos').onclick = (e) => { const b = e.target.closest('[data-rm]'); if (b) { photos.splice(+b.dataset.rm, 1); draw(); } };
   $('#c-file').onchange = async (e) => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; if (photos.length >= 3) return toast('Up to 3 photos', 'bad'); try { photos.push(await shrink(f)); draw(); } catch (er) { toast(er.message, 'bad'); } };
+
+  $('#c-desc').addEventListener('input', () => {
+    clearTimeout(analyzeTimer);
+    if ($('#c-desc').value.trim().length >= 5) {
+      analyzeTimer = setTimeout(() => runAnalyze(false), 700);
+    }
+  });
+  $('#c-desc').addEventListener('blur', () => {
+    clearTimeout(analyzeTimer);
+    if ($('#c-desc').value.trim().length >= 5) runAnalyze(false);
+  });
+  $('#c-ai-trigger').addEventListener('click', () => {
+    const desc = $('#c-desc').value.trim();
+    if (desc.length < 5) return toast('Enter problem details (5+ characters) first', 'bad');
+    runAnalyze(true);
+  });
+
+  $('#c-prio').addEventListener('change', () => {
+    if (aiState.result?.safety?.triggered && $('#c-prio').value !== 'Emergency') {
+      $('#c-prio').value = 'Emergency';
+      toast(t('ai_safety_locked'), 'bad');
+    }
+  });
+
   $('#cf').onsubmit = async (e) => {
     e.preventDefault(); const title = $('#c-title').value.trim(), desc = $('#c-desc').value.trim();
     $$('[data-e]').forEach((x) => (x.textContent = '')); let bad = false;
     if (title.length < 3) { $('[data-e=title]').textContent = 'Please enter a short title (3+ characters)'; bad = true; }
     if (desc.length < 5) { $('[data-e=desc]').textContent = 'Please describe the problem (5+ characters)'; bad = true; }
     if (bad) return;
+    const cat = $('#c-cat').value || null;
+    let prio = $('#c-prio').value || null;
+    if (aiState.result?.safety?.triggered) prio = 'Emergency';
+    const summary = aiState.result?.summary || null;
     await busy($('#c-go'), async () => {
-      try { const r = await api('POST', '/complaints', { title, description: desc, category: $('#c-cat').value || null, photos }); complaintResult(root, r.complaint); }
-      catch (er) { toast(er.message, 'bad'); }
+      try {
+        const r = await api('POST', '/complaints', { title, description: desc, category: cat, priority: prio, summary, photos });
+        complaintResult(root, r.complaint);
+      } catch (er) { toast(er.message, 'bad'); }
     });
   };
 }
@@ -210,4 +386,126 @@ export function bookView(root) {
       if (c) { if (!(await confirmDialog({ title: t('cancel_booking'), body: '', danger: true, confirm: t('cancel_booking') }))) return; try { await api('POST', `/bookings/${c.dataset.cancel}/cancel`); bookView(root); } catch (er) { toast(er.message, 'bad'); } }
     };
   });
+}
+
+// ================= AI RESIDENT CHATBOT =================
+export function chatView(root) {
+  let messages = [
+    { role: 'assistant', content: t('chat_welcome') },
+  ];
+  let loading = false;
+
+  const quickQuestions = [
+    'What is my complaint status?',
+    'How do I pay maintenance?',
+    'What are the clubhouse hours?',
+    'How do I approve visitors?',
+  ];
+
+  const render = () => {
+    mount(root, h`
+      <div style="max-width:760px;margin:0 auto">
+        ${head(t('chat_title'), t('chat_subtitle'), h`<span class="chip info">${icon('bot')} Read-Only AI</span>`)}
+
+        <div class="card stack sm" style="padding:16px;min-height:460px;display:flex;flex-direction:column;justify-content:space-between">
+          <!-- Chat messages area -->
+          <div id="chat-messages" style="display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:480px;padding:4px 2px" role="log" aria-live="polite">
+            ${messages.map((m) => {
+              const isUser = m.role === 'user';
+              return h`
+                <div style="display:flex;justify-content:${isUser ? 'flex-end' : 'flex-start'};gap:8px">
+                  ${!isUser ? h`<div class="avatar" style="width:28px;height:28px;font-size:12px;background:var(--forest);flex-shrink:0" aria-hidden="true">${icon('bot')}</div>` : ''}
+                  <div style="max-width:82%;padding:10px 14px;border-radius:${isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};background:${isUser ? 'var(--primary)' : 'var(--soft)'};color:${isUser ? '#fff' : 'var(--text)'};font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap">
+                    ${m.content}
+                  </div>
+                </div>
+              `;
+            })}
+            ${loading ? h`
+              <div style="display:flex;justify-content:flex-start;gap:8px">
+                <div class="avatar" style="width:28px;height:28px;font-size:12px;background:var(--forest);flex-shrink:0" aria-hidden="true">${icon('bot')}</div>
+                <div style="padding:10px 14px;border-radius:16px 16px 16px 4px;background:var(--soft);color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px">
+                  <span class="spinner dk" style="width:14px;height:14px;border-width:2px"></span>
+                  <span>${t('chat_thinking')}</span>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Quick prompt pills -->
+          <div class="row wrap" style="gap:6px;padding:8px 0 4px">
+            ${quickQuestions.map((q) => h`
+              <button type="button" class="chip" data-quick="${q}" style="cursor:pointer;border:1px solid var(--line-strong);background:#fff">
+                ${q}
+              </button>
+            `)}
+          </div>
+
+          <!-- Input bar -->
+          <form id="chat-form" style="display:flex;gap:8px;align-items:flex-end;margin-top:6px">
+            <textarea id="chat-input" class="input" rows="1" maxlength="500" placeholder="${t('chat_placeholder')}" style="min-height:44px;max-height:100px;padding:10px 12px;resize:none" ${loading ? 'disabled' : ''}></textarea>
+            <button class="btn primary" type="submit" id="chat-submit" style="min-height:44px;min-width:44px;padding:0 16px" ${loading ? 'disabled' : ''} aria-label="${t('chat_send')}">
+              ${icon('arrowr')}
+            </button>
+          </form>
+
+          <div class="tiny muted center" style="margin-top:4px">
+            ${t('chat_readonly_note')}
+          </div>
+        </div>
+      </div>
+    `);
+
+    const box = $('#chat-messages');
+    if (box) box.scrollTop = box.scrollHeight;
+    $('#chat-input')?.focus();
+  };
+
+  const send = async (text) => {
+    const q = (text || '').trim();
+    if (!q || loading) return;
+    const priorHistory = messages.slice(-10);
+    messages.push({ role: 'user', content: q });
+    loading = true;
+    render();
+
+    try {
+      const res = await api('POST', '/chat', {
+        message: q,
+        history: priorHistory,
+      });
+      messages.push({ role: 'assistant', content: res.reply || t('chat_error') });
+    } catch (e) {
+      const errMsg = e.status === 429 ? e.message : (e.status === 401 ? 'Please sign in to access the assistant.' : t('chat_error'));
+      messages.push({ role: 'assistant', content: errMsg });
+    } finally {
+      loading = false;
+      render();
+    }
+  };
+
+  root.onclick = (e) => {
+    const qBtn = e.target.closest('[data-quick]');
+    if (qBtn && !loading) {
+      send(qBtn.dataset.quick);
+    }
+  };
+
+  root.onsubmit = (e) => {
+    if (e.target.id === 'chat-form') {
+      e.preventDefault();
+      const val = $('#chat-input')?.value;
+      if (val) send(val);
+    }
+  };
+
+  root.onkeydown = (e) => {
+    if (e.target.id === 'chat-input' && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const val = $('#chat-input')?.value;
+      if (val) send(val);
+    }
+  };
+
+  render();
 }

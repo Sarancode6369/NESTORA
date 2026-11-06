@@ -5,8 +5,11 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { statement, statementFrom, groupByFlat, generateBills, applyLateFees, postPayment, computeLateFee, LATE_FEE_MODES, round2, dayDiff } from './billing.js';
 import { processBankCsv } from './matching.js';
-import { createComplaint, changeCategory, changePriority, confirmReview, changeStatus, assign, rate, reopen, unlink, responseState, keywordClassifier } from './complaints.js';
+import { createComplaint, changeCategory, changePriority, confirmReview, changeStatus, assign, rate, reopen, unlink, linkComplaint, responseState, keywordClassifier } from './complaints.js';
 import { CATEGORIES, URGENCIES } from './triage.js';
+import { suggestDuplicateComplaints } from './ai/duplicates.js';
+import { runChatbot } from './ai/chatbot.js';
+import { createAiFromEnv } from './ai/index.js';
 import { analytics, monthlyReport } from './analytics.js';
 import { createRepos } from './repos/index.js';
 import { HttpError } from './repos/util.js';
@@ -53,7 +56,9 @@ export function createApp({
   db, secret = process.env.JWT_SECRET || 'dev-only-secret-change-me', clock = () => new Date(), classifier = keywordClassifier,
   aiStatus = () => ({ mode: 'keyword', provider: null, model: null }), otpAttempts = new Map(),
   limits = {}, allowDemoReset = process.env.NODE_ENV !== 'production',
+  groq = null,
 }) {
+  const groqClient = groq ?? createAiFromEnv().groq;
   const routes = [];
   const route = (method, pattern, roles, handler, opts = {}) => {
     const keys = [];
@@ -64,6 +69,8 @@ export function createApp({
   const apiLimiter = createLimiter({ windowMs: 60000, max: limits.api ?? 600 });
   const authLimiter = createLimiter({ windowMs: 60000, max: limits.auth ?? 20 });
   const aiLimiter = createLimiter({ windowMs: 60000, max: limits.complaints ?? 10 });
+  const analyzeLimiter = createLimiter({ windowMs: 60000, max: limits.analyze ?? 60 });
+  const chatLimiter = createLimiter({ windowMs: 60000, max: limits.chat ?? 30 });
   const publicLimiter = createLimiter({ windowMs: 60000, max: limits.publicForm ?? 10 });
   const tooMany = (hit) => { if (!hit.ok) throw Object.assign(new HttpError(429, `Too many requests. Try again in ${hit.retryAfterSec}s.`), { retryAfter: hit.retryAfterSec }); };
 
@@ -262,22 +269,105 @@ export function createApp({
   });
 
   // ================= Complaints =================
-  const viewComplaint = (c, staff, nowMs) => ({ ...c, assignee: staff.find((s) => s.id === c.assigneeId) || null, response: responseState(c, nowMs), linkedPrimary: c.linkedTo });
+  const viewComplaint = (c, staff, nowMs) => ({ ...c, assignee: staff.find((s) => s.id === c.assigneeId) || null, response: responseState(c, nowMs), linkedPrimary: c.linkedTo, priority: c.urgency });
   const getC = async (r, id) => { const c = await r.complaints.get(id); if (!c) throw new HttpError(404, 'Complaint not found'); return c; };
   const ownComplaint = async (r, id, user) => { const c = await getC(r, id); if (user.role === 'resident' && c.flatNo !== user.flatNo) throw new HttpError(404, 'Complaint not found'); return c; };
   const out = async (r, c, nowMs) => ({ complaint: viewComplaint(await r.complaints.get(c.id), await r.core.staffList(), nowMs) });
 
+  // AI Complaint Analysis endpoint (before submission). Calls Groq with safety net & keyword fallback.
+  const analyzeComplaint = async ({ body, user, r }) => {
+    tooMany(analyzeLimiter.hit(`analyze:${user.id}`));
+    const desc = body.description || body.text || '';
+    const description = str(desc, 'Description', { min: 3, max: 2000 });
+    const title = typeof body.title === 'string' && body.title.trim() ? body.title.trim().slice(0, 120) : '';
+    const residentCategory = body.category && CATEGORIES.includes(body.category) ? body.category : null;
+    const cls = await classifier({ title, description, residentCategory, staff: await r.core.staffList(), load: await r.complaints.openLoad() });
+    return {
+      category: cls.category || cls.aiCategory || 'Other',
+      priority: cls.urgency || cls.aiUrgency || 'Medium',
+      urgency: cls.urgency || cls.aiUrgency || 'Medium',
+      summary: cls.summary || (title ? `${title} - ${description.slice(0, 100)}` : description.slice(0, 100)),
+      confidence: cls.confidence ?? 0,
+      safety: cls.safety || { triggered: false, rules: [], labels: [] },
+      needsReview: !!cls.needsReview,
+      reviewReasons: cls.reviewReasons || [],
+      method: cls.method || 'keyword_fallback',
+      model: cls.model || null,
+      explanation: cls.explanation || '',
+      fallbackReason: cls.fallbackReason || null,
+      categories: CATEGORIES,
+      priorities: URGENCIES,
+    };
+  };
+  route('POST', '/api/complaints/analyze', ['resident', 'helpdesk'], analyzeComplaint);
+  route('POST', '/api/ai/analyze', ['resident', 'helpdesk'], analyzeComplaint);
+
+  // AI Duplicate Complaint Suggestions (before submission or during triage)
+  route('POST', '/api/complaints/duplicates/suggest', ['resident', 'helpdesk'], async ({ body, user, r, now }) => {
+    tooMany(analyzeLimiter.hit(`suggest:${user.id}`));
+    let title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
+    let desc = body.description || body.text || '';
+    let category = body.category && CATEGORIES.includes(body.category) ? body.category : null;
+    let flatNo = user.flatNo;
+    let tower = null;
+
+    if (body.id) {
+      const existing = await r.complaints.get(body.id, { photos: false });
+      if (existing) {
+        if (!desc || desc.trim().length === 0) desc = existing.description;
+        if (!title) title = existing.title;
+        if (!category) category = existing.category;
+        if (!flatNo || user.role === 'helpdesk') flatNo = existing.flatNo;
+      }
+    }
+
+    if (user.role === 'helpdesk' && body.flatNo) {
+      flatNo = str(body.flatNo, 'Flat number', { max: 12 });
+    }
+    if (flatNo) {
+      const fl = await r.core.flat(flatNo);
+      if (fl) tower = fl.tower;
+    }
+    const description = str(desc, 'Description', { min: 3, max: 2000 });
+    const open = await r.complaints.list({ openOnly: true });
+    const candidates = await suggestDuplicateComplaints(open, { title, description, category, flatNo, tower, id: body.id || null }, { groq, nowMs: now.getTime() });
+
+    // Resident privacy protection: never expose other residents' flat details or personal info
+    const outCandidates = candidates.map((c) => {
+      const isOwn = user.role === 'resident' && c.flatNo === user.flatNo;
+      return {
+        id: c.id,
+        title: c.title,
+        category: c.category,
+        status: c.status,
+        urgency: c.urgency,
+        createdAt: c.createdAt,
+        similarity: c.similarity,
+        explanation: c.explanation,
+        needsReview: c.needsReview,
+        flatNo: (user.role === 'helpdesk' || isOwn) ? c.flatNo : undefined,
+        tower: user.role === 'helpdesk' ? c.tower : undefined,
+      };
+    });
+    return { candidates: outCandidates };
+  });
+
   // Classification (possibly a network call to Groq) happens BEFORE the database transaction opens, so no row
   // locks are held while we wait for the model.
-  route('POST', '/api/complaints', ['resident'], async ({ body, user, now, r }) => {
+  route('POST', '/api/complaints', ['resident', 'helpdesk'], async ({ body, user, now, r }) => {
     tooMany(aiLimiter.hit(`complaint:${user.id}`));
     const title = str(body.title, 'Title', { min: 3, max: 120 });
     const description = str(body.description, 'Description', { min: 5, max: 2000 });
     const category = body.category && body.category !== '' ? body.category : null;
     if (category && !CATEGORIES.includes(category)) throw bad('Invalid category');
+    const priority = body.priority && body.priority !== '' ? body.priority : null;
+    if (priority && !URGENCIES.includes(priority)) throw bad('Invalid priority');
+    const summary = typeof body.summary === 'string' && body.summary.trim() ? body.summary.trim().slice(0, 300) : null;
     const photos = Array.isArray(body.photos) ? body.photos.slice(0, 3).filter((p) => typeof p === 'string' && p.startsWith('data:image/') && p.length < 900_000) : [];
+    const flatNo = user.flatNo || (body.flatNo ? str(body.flatNo, 'Flat number', { max: 12 }) : null);
+    if (!flatNo) throw bad('Flat number is required');
     const cls = await classifier({ title, description, residentCategory: category, staff: await r.core.staffList(), load: await r.complaints.openLoad() });
-    const created = await db.transaction((tx) => createComplaint(createRepos(tx, clock), { flatNo: user.flatNo, title, description, category, photos }, user, now, { classifier: async () => cls }));
+    const created = await db.transaction((tx) => createComplaint(createRepos(tx, clock), { flatNo, title, description, category, priority, summary, photos }, user, now, { classifier: async () => cls }));
     return { complaint: viewComplaint(created, await r.core.staffList(), now.getTime()) };
   }, { ownTx: true });
   route('GET', '/api/complaints', ['resident', 'helpdesk'], async ({ user, query, r, now }) => {
@@ -306,6 +396,12 @@ export function createApp({
   route('POST', '/api/complaints/:id/rate', ['resident'], async ({ params, body, user, now, r }) => { await rate(r, await ownComplaint(r, params.id, user), Number(body.rating), body.comment, user, now); return out(r, params, now.getTime()); });
   route('POST', '/api/complaints/:id/reopen', ['resident'], async ({ params, body, user, now, r }) => { await reopen(r, await ownComplaint(r, params.id, user), body.reason, user, now); return out(r, params, now.getTime()); });
   route('POST', '/api/complaints/:id/unlink', ['helpdesk'], async ({ params, user, now, r }) => { await unlink(r, await getC(r, params.id), user, now); return out(r, params, now.getTime()); });
+  route('POST', '/api/complaints/:id/link', ['helpdesk'], async ({ params, body, user, now, r }) => {
+    const targetId = str(body.targetId, 'Target Complaint ID', { min: 3, max: 20 });
+    const c = await getC(r, params.id);
+    await linkComplaint(r, c, targetId, user, now, body.reason);
+    return out(r, params, now.getTime());
+  });
   route('GET', '/api/staff', ['helpdesk'], async ({ r }) => ({ staff: await r.core.staffList() }));
   // Which engine classifies complaints right now. Never returns the key itself.
   route('GET', '/api/ai/status', ['helpdesk', 'committee'], () => ({ ...aiStatus(), categories: CATEGORIES, priorities: URGENCIES }));
@@ -439,6 +535,66 @@ export function createApp({
     await r.community.cancelBooking(b.id);
     return { booking: { ...b, status: 'cancelled' } };
   });
+
+  // ================= AI Resident Chatbot (Read-only, Authenticated Resident Only) =================
+  route('POST', '/api/chat', ['resident'], async ({ body, user, r }) => {
+    tooMany(chatLimiter.hit(`chat:${user.id}`));
+    const message = str(body.message, 'Message', { min: 1, max: 500 });
+    const history = Array.isArray(body.history)
+      ? body.history.slice(-10).filter((h) => h && typeof h.content === 'string')
+      : [];
+
+    // Context retrieved server-side from authenticated session (never from client request)
+    const flatInfo = user.flatNo ? await r.core.flat(user.flatNo) : null;
+    const complaints = user.flatNo ? await r.complaints.list({ flatNo: user.flatNo }) : [];
+    let billing = null;
+    try {
+      if (user.flatNo) {
+        const [stmt, bills] = await Promise.all([
+          statement(r, user.flatNo, today()),
+          r.billing.billsForFlat(user.flatNo),
+        ]);
+        const dueBills = (stmt?.items || []).filter((i) => i.due > 0 && i.kind === 'bill');
+        const oldestDue = dueBills.slice().sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
+        const latestPayment = (stmt?.payments || []).slice().sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))[0];
+
+        billing = {
+          hasRecords: (bills.length > 0 || (stmt?.items && stmt.items.length > 0) || (stmt?.payments && stmt.payments.length > 0)),
+          outstanding: stmt ? stmt.outstanding : 0,
+          advanceCredit: stmt ? stmt.advanceCredit : 0,
+          status: stmt ? (stmt.outstanding <= 0 ? 'paid' : (stmt.maxOverdueDays > 0 ? 'overdue' : 'due')) : 'unavailable',
+          daysOverdue: stmt ? stmt.maxOverdueDays : 0,
+          oldestDueDate: oldestDue?.dueDate || null,
+          unpaidBills: dueBills.slice(0, 3).map((b) => ({
+            period: b.period,
+            amount: b.amount,
+            due: b.due,
+            dueDate: b.dueDate,
+            daysOverdue: b.daysOverdue,
+          })),
+          recentPayment: latestPayment ? {
+            date: latestPayment.date,
+            amount: latestPayment.amount,
+            method: latestPayment.method,
+            receiptNo: latestPayment.receiptNo,
+          } : null,
+          paymentRef: flatInfo?.paymentRef || `NST-${user.flatNo}`,
+        };
+      }
+    } catch {
+      billing = null;
+    }
+    const amenities = await r.community.amenities();
+    const notices = await r.community.notices(5);
+
+    const result = await runChatbot({
+      groq: groqClient,
+      context: { flatInfo, complaints, billing, amenities, notices },
+      message,
+      history,
+    });
+    return result;
+  }, { ownTx: true });
 
   // ================= Committee =================
   route('GET', '/api/analytics', ['committee', 'helpdesk'], async ({ query, r, now }) => analytics(r, today(), now.getTime(), query.period));

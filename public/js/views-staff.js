@@ -42,8 +42,13 @@ export function deskView(root) {
 }
 
 async function openComplaint(id, refresh) {
-  const d = await api('GET', `/complaints/${id}`).catch((e) => (toast(e.message, 'bad'), null)); if (!d) return;
+  const [d, dupSuggest] = await Promise.all([
+    api('GET', `/complaints/${id}`).catch((e) => (toast(e.message, 'bad'), null)),
+    api('POST', '/complaints/duplicates/suggest', { id, description: ' ' }).catch(() => ({ candidates: [] })),
+  ]);
+  if (!d) return;
   const c = d.complaint; const staff = d.staff;
+  const candidates = (dupSuggest?.candidates || []).filter((x) => x.id !== c.id && x.id !== c.linkedTo);
   const m = openModal(h`
     <div class="row between"><div><h3>${c.title}</h3><div class="small muted">${c.id} · Flat ${c.flatNo} · ${dtFmt(c.createdAt)}</div></div><button class="btn ghost sm" data-close aria-label="Close">${icon('x')}</button></div>
     <div class="stack" style="margin-top:16px">
@@ -58,7 +63,38 @@ async function openComplaint(id, refresh) {
       <div class="field"><label>Priority <span class="muted" style="font-weight:400">— an emergency raised by a safety rule cannot be lowered</span></label><div class="seg" id="prio">${PRIOS.map((x) => h`<button data-prio="${x}" aria-pressed="${c.urgency === x}">${x}</button>`)}</div></div>
       <div class="grid2"><div class="field"><label for="as">Assign to</label><select id="as" class="input"><option value="">Unassigned</option>${staff.filter((s) => s.team !== 'Duty').map((s) => h`<option value="${s.id}" ${c.assigneeId === s.id ? 'selected' : ''}>${s.name} · ${s.team}</option>`)}</select></div>
         <div class="field"><label for="st">Status</label><select id="st" class="input">${STATUSES.map((s) => h`<option value="${s}" ${c.status === s ? 'selected' : ''}>${SL[s]}</option>`)}</select></div></div>
-      ${c.linkedTo || d.complaint.linkedFrom?.length ? h`<div class="card flat stack sm"><b class="small">Linked complaints</b>${c.linkedTo ? h`<div class="row between small"><span>Looks similar to <b>${c.linkedTo}</b> (linked, not closed)</span><button class="btn sm" id="unlink">Unlink</button></div>` : ''}${(d.complaint.linkedFrom || []).map((x) => h`<div class="small"><a href="#/app/desk" data-open="${x.id}">${x.id}</a> · ${x.flatNo} · ${x.title}</div>`)}</div>` : ''}
+
+      <!-- Linked & Duplicate Complaints -->
+      <div class="card flat stack sm">
+        <div class="row between">
+          <b class="small">Duplicate Management</b>
+          ${!c.linkedTo ? h`<button class="btn sm" id="link-manual">${icon('plus')}Link to existing</button>` : ''}
+        </div>
+        ${c.linkedTo ? h`<div class="row between small" style="background:#fef3c7;padding:8px 10px;border-radius:8px">
+          <div>
+            <span>Linked to <b>${c.linkedTo}</b> (remains open)</span>
+            ${c.linkedSimilarity ? h`<span class="tiny muted"> · ${Math.round(c.linkedSimilarity * 100)}% match</span>` : ''}
+          </div>
+          <button class="btn sm" id="unlink">Unlink</button>
+        </div>` : ''}
+        ${d.complaint.linkedFrom?.length ? h`<div class="stack sm">
+          <div class="tiny muted" style="font-weight:700">Complaints linked to this one (${d.complaint.linkedFrom.length}):</div>
+          ${d.complaint.linkedFrom.map((x) => h`<div class="row between small" style="padding:4px 0;border-bottom:1px solid var(--line)">
+            <div><a href="#/app/desk" data-open="${x.id}"><b>${x.id}</b></a> · Flat ${x.flatNo} · ${x.title}</div>
+          </div>`)}
+        </div>` : ''}
+        ${!c.linkedTo && candidates.length ? h`<div class="stack sm" style="margin-top:6px">
+          <div class="tiny muted" style="font-weight:700">AI Suggested Duplicates (${candidates.length}):</div>
+          ${candidates.map((x) => h`<div class="row between small" style="background:var(--soft);padding:8px 10px;border-radius:8px">
+            <div class="grow" style="margin-right:8px">
+              <div><a href="#/app/desk" data-open="${x.id}"><b>${x.id}</b></a> · Flat ${x.flatNo || '-'} · ${x.title}</div>
+              <div class="tiny muted">${x.explanation} (${Math.round((x.similarity || 0) * 100)}% match)</div>
+            </div>
+            <button class="btn sm primary" data-link-cand="${x.id}">Link</button>
+          </div>`)}
+        </div>` : ''}
+      </div>
+
       ${c.rating ? h`<div class="small">Resident rating: <b>${c.rating}/5</b> ${c.ratingComment || ''}</div>` : ''}${c.reopenCount ? h`<div class="small">Reopened ${c.reopenCount}×</div>` : ''}
       <div><b class="small">History</b><div class="timeline" style="margin-top:10px">${c.history.map((x) => h`<div class="tl ${['Auto-triage', 'AI triage', 'Safety rule', 'Auto-assign', 'Auto-link'].includes(x.actor) ? 'sys' : ''}"><div class="small"><b>${x.action}</b> · ${x.actor} <span class="muted tiny">${dtFmt(x.at)}</span></div><div class="small muted">${x.detail}</div></div>`)}</div></div>
     </div>`, { drawer: true, label: c.title, onClose: refresh });
@@ -68,8 +104,172 @@ async function openComplaint(id, refresh) {
   $('#confirm', m.el)?.addEventListener('click', async () => { try { await api('POST', `/complaints/${id}/confirm`); toast('Classification confirmed'); m.close(); openComplaint(id, refresh); } catch (e) { toast(e.message, 'bad'); } });
   $('#as', m.el).onchange = (e) => e.target.value && patch('assign', { staffId: e.target.value }, 'Assigned');
   $('#st', m.el).onchange = (e) => patch('status', { status: e.target.value }, `Status: ${SL[e.target.value]}`);
-  $('#unlink', m.el)?.addEventListener('click', async () => { await api('POST', `/complaints/${id}/unlink`); m.close(); openComplaint(id, refresh); });
-  m.el.addEventListener('click', (e) => { const r = e.target.closest('[data-open]'); if (r) { e.preventDefault(); m.close(); openComplaint(r.dataset.open, refresh); } });
+  $('#unlink', m.el)?.addEventListener('click', async () => {
+    if (!(await confirmDialog({
+      title: 'Unlink duplicate complaint?',
+      body: `Unlink ${c.id} from ${c.linkedTo}? Both complaints will remain open as independent records, and an audit trail will be logged.`,
+    }))) return;
+    try {
+      await api('POST', `/complaints/${id}/unlink`);
+      toast('Unlinked');
+      m.close();
+      openComplaint(id, refresh);
+    } catch (err) {
+      toast(err.message, 'bad');
+    }
+  });
+  $('#link-manual', m.el)?.addEventListener('click', () => {
+    openLinkModal(c, () => {
+      m.close();
+      openComplaint(id, refresh);
+    });
+  });
+  m.el.addEventListener('click', async (e) => {
+    const linkBtn = e.target.closest('[data-link-cand]');
+    if (linkBtn) {
+      const targetId = linkBtn.dataset.linkCand;
+      if (!(await confirmDialog({ title: 'Link duplicate complaint?', body: `Link ${c.id} to ${targetId}? Both complaints remain open and visible.` }))) return;
+      try {
+        await api('POST', `/complaints/${id}/link`, { targetId });
+        toast('Linked as duplicate');
+        m.close();
+        openComplaint(id, refresh);
+      } catch (err) {
+        toast(err.message, 'bad');
+      }
+      return;
+    }
+    const r = e.target.closest('[data-open]');
+    if (r) {
+      e.preventDefault();
+      m.close();
+      openComplaint(r.dataset.open, refresh);
+    }
+  });
+}
+
+async function openLinkModal(c, refresh) {
+  const [allData, dupSuggest] = await Promise.all([
+    api('GET', '/complaints').catch(() => ({ complaints: [] })),
+    api('POST', '/complaints/duplicates/suggest', { id: c.id }).catch(() => ({ candidates: [] })),
+  ]);
+
+  const all = allData.complaints || [];
+  // Eligible open complaints: not resolved, not self, not already linked back
+  const eligible = all.filter((x) => x.id !== c.id && x.status !== 'resolved' && x.linkedTo !== c.id && c.linkedTo !== x.id);
+  const candidates = (dupSuggest.candidates || []).filter((x) => x.id !== c.id && x.id !== c.linkedTo && x.status !== 'resolved');
+
+  let filterText = '';
+
+  const renderContent = (modalEl, closeFn) => {
+    const q = filterText.toLowerCase().trim();
+    const filtered = eligible.filter((x) => !q || x.id.toLowerCase().includes(q) || x.title.toLowerCase().includes(q) || (x.flatNo || '').toLowerCase().includes(q) || x.category.toLowerCase().includes(q));
+
+    mount(modalEl, h`
+      <div class="row between">
+        <div>
+          <h3>Link to Existing Complaint</h3>
+          <div class="small muted">Linking <b>${c.id}</b> · ${c.title} (Flat ${c.flatNo || '-'}, ${c.category})</div>
+        </div>
+        <button class="btn ghost sm" data-close aria-label="Close">${icon('x')}</button>
+      </div>
+
+      <div class="stack" style="margin-top:14px;max-height:560px;overflow-y:auto;padding-right:4px">
+        <div class="field" style="margin:0">
+          <input type="search" id="link-search" class="input" placeholder="Search eligible complaints by ID, title, flat, category..." value="${filterText}">
+        </div>
+
+        ${!filterText && candidates.length ? h`
+          <div class="stack sm" style="margin-top:8px">
+            <b class="tiny muted" style="font-weight:700">AI SIMILARITY SUGGESTIONS (${candidates.length})</b>
+            ${candidates.map((x) => h`
+              <div class="row between small" style="background:#fef3c7;border:1px solid #fde68a;padding:10px 12px;border-radius:8px">
+                <div class="grow" style="margin-right:12px">
+                  <div class="row" style="gap:6px;align-items:center">
+                    <b>${x.id}</b> · Flat ${x.flatNo || '-'} · ${x.title}
+                    <span class="chip ${x.urgency === 'Emergency' ? 'bad' : ''}">${x.urgency || x.priority}</span>
+                  </div>
+                  <div class="tiny muted" style="margin-top:2px">${x.explanation} (${Math.round((x.similarity || 0) * 100)}% match)</div>
+                </div>
+                <button class="btn sm primary" data-select-link="${x.id}">Select</button>
+              </div>
+            `)}
+          </div>
+        ` : ''}
+
+        <div class="stack sm" style="margin-top:8px">
+          <div class="row between">
+            <b class="tiny muted" style="font-weight:700">ELIGIBLE OPEN COMPLAINTS (${filtered.length})</b>
+            <span class="tiny muted">Both complaints remain active</span>
+          </div>
+          ${filtered.length ? h`
+            <div class="card pad0 tablewrap" style="max-height:280px;overflow-y:auto">
+              <table class="cards-on-mobile">
+                <thead>
+                  <tr>
+                    <th>Complaint</th>
+                    <th>Flat</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${filtered.map((x) => h`
+                    <tr>
+                      <td data-l="Complaint"><b>${x.id}</b> · ${x.title}</td>
+                      <td data-l="Flat">${x.flatNo || '-'}</td>
+                      <td data-l="Category">${x.category}</td>
+                      <td data-l="Priority">${chip(x.urgency || x.priority)}</td>
+                      <td data-l="Status">${chip(x.status)}</td>
+                      <td class="right">
+                        <button class="btn sm primary" data-select-link="${x.id}">Link</button>
+                      </td>
+                    </tr>
+                  `)}
+                </tbody>
+              </table>
+            </div>
+          ` : h`<div class="empty"><b>No eligible complaints match</b>Try a different search query.</div>`}
+        </div>
+      </div>
+    `);
+
+    const input = modalEl.querySelector('#link-search');
+    if (input) {
+      input.focus();
+      input.selectionStart = input.selectionEnd = input.value.length;
+      input.oninput = (e) => {
+        filterText = e.target.value;
+        renderContent(modalEl, closeFn);
+      };
+    }
+
+    modalEl.onclick = async (e) => {
+      const selectBtn = e.target.closest('[data-select-link]');
+      if (selectBtn) {
+        const targetId = selectBtn.dataset.selectLink;
+        const target = all.find((x) => x.id === targetId);
+        const confirmed = await confirmDialog({
+          title: 'Confirm Duplicate Link',
+          body: `Link complaint ${c.id} to ${targetId} (${target?.title || 'Existing complaint'})?\n\nBoth complaints will remain open with individual resident ownership, photos, and histories preserved. Emergency escalations are fully retained.`,
+        });
+        if (!confirmed) return;
+        try {
+          await api('POST', `/complaints/${c.id}/link`, { targetId });
+          toast(`Linked ${c.id} as duplicate of ${targetId}`);
+          closeFn();
+          refresh();
+        } catch (err) {
+          toast(err.message, 'bad');
+        }
+      }
+    };
+  };
+
+  const modal = openModal(h`<div id="link-modal-inner"></div>`, { wide: true, label: 'Link to Existing Complaint' });
+  renderContent(modal.el, () => modal.close());
 }
 
 // ================= PAYMENTS / RECONCILIATION =================

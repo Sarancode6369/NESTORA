@@ -13,13 +13,13 @@ export function groqConfigFromEnv(env = process.env) {
   return {
     apiKey: apiKey || null,
     model: (env.GROQ_MODEL || DEFAULT_MODEL).trim(),
-    timeoutMs: Math.min(30000, Math.max(500, Number(env.AI_TIMEOUT_MS) || 8000)),
+    timeoutMs: Math.min(30000, Math.max(500, Number(env.AI_TIMEOUT_MS) || 15000)),
     minConfidence: Math.min(1, Math.max(0, env.AI_MIN_CONFIDENCE !== undefined && env.AI_MIN_CONFIDENCE !== '' ? Number(env.AI_MIN_CONFIDENCE) : 0.6)),
     maxCallsPerMinute: Number(env.AI_MAX_CALLS_PER_MIN) || 30,
   };
 }
 
-export function createGroqClient({ apiKey, model = DEFAULT_MODEL, timeoutMs = 8000, fetchImpl = globalThis.fetch, url = GROQ_URL } = {}) {
+export function createGroqClient({ apiKey, model = DEFAULT_MODEL, timeoutMs = 15000, fetchImpl = globalThis.fetch, url = GROQ_URL } = {}) {
   const configured = !!apiKey;
   const isGptOss = /^openai\/gpt-oss/.test(model);
   async function post(messages, { jsonMode }) {
@@ -46,10 +46,12 @@ export function createGroqClient({ apiKey, model = DEFAULT_MODEL, timeoutMs = 80
   }
   return {
     configured, model,
-    // Returns the raw text of the first completion. JSON mode is requested; if the model rejects response_format the
+    // Returns the raw text of the first completion. JSON mode is requested by default; if the model rejects response_format the
     // request is repeated once without it (the strict validator downstream still guards the result).
-    async complete(messages) {
+    // For freeform conversational chat, pass { jsonMode: false } to skip response_format entirely.
+    async complete(messages, { jsonMode = true } = {}) {
       if (!configured) throw new AiError('not_configured', 'GROQ_API_KEY is not set');
+      if (!jsonMode) return await post(messages, { jsonMode: false });
       try { return await post(messages, { jsonMode: true }); }
       catch (e) { if (e.kind === 'http' && e.status === 400 && /response_format|json/i.test(e.detail || '')) return post(messages, { jsonMode: false }); throw e; }
     },

@@ -26,6 +26,22 @@ export async function createComplaint(r, input, user, now, { classifier = keywor
     firstResponseAt: null, resolvedAt: null, rating: null, ratingComment: '', linkedTo: null, linkedSimilarity: null, linkedCount: 0,
     reopenCount: 0, photos: input.photos || [], history: [], demo: !!input.demo,
   };
+  if (input.summary && typeof input.summary === 'string' && input.summary.trim()) {
+    c.summary = input.summary.trim().slice(0, 300);
+  }
+  // Enforce approved priority if provided (unless overridden by safety rule)
+  if (input.priority && URGENCIES.includes(input.priority)) {
+    if (t.safety?.triggered) {
+      c.urgency = 'Emergency';
+    } else {
+      c.urgency = input.priority;
+      c.respondBy = plusMin(now, SLA_MINUTES[c.urgency]);
+      if (input.priority !== t.aiUrgency && !c.reviewReasons.some((r) => r.includes('Resident chose priority'))) {
+        c.needsReview = true;
+        c.reviewReasons.push(`Resident chose priority ${input.priority}; AI suggested ${t.aiUrgency}`);
+      }
+    }
+  }
   c.suggestedDepartment = t.suggestedDepartment || c.category;
   await r.complaints.insert(c);
   await r.complaints.history(c, now, user?.name || 'Resident', 'created', 'Complaint submitted');
@@ -156,12 +172,49 @@ export async function reopen(r, c, reason, user, now) {
   return c;
 }
 
+export async function linkComplaint(r, c, targetId, user, now, reason = '') {
+  if (c.id === targetId) throw fail(400, 'Cannot link a complaint to itself');
+  if (c.linkedTo === targetId) throw fail(400, 'Complaint is already linked to this complaint');
+  const target = await r.complaints.get(targetId, { photos: false });
+  if (!target) throw fail(404, 'Target complaint not found');
+  if (target.status === 'resolved') throw fail(400, 'Cannot link to a resolved complaint');
+
+  let rootId = target.id;
+  const guard = new Set([c.id]);
+  while (rootId && !guard.has(rootId)) {
+    guard.add(rootId);
+    const nxt = await r.complaints.linkedToOf(rootId);
+    if (!nxt) break;
+    rootId = nxt;
+  }
+  if (rootId === c.id) throw fail(400, 'Circular duplicate linking is not allowed');
+  if (c.linkedTo === rootId) throw fail(400, 'Complaint is already linked to this complaint');
+
+  const oldLink = c.linkedTo;
+  c.linkedTo = rootId;
+  if (c.linkedSimilarity == null) {
+    c.linkedSimilarity = 1.0;
+  }
+  await r.complaints.save(c);
+
+  const detail = `Linked as duplicate of ${rootId} by ${user.name || 'Help Desk'}${reason ? `: ${reason}` : ''}`;
+  await r.complaints.history(c, now, user.name || 'Help Desk', 'linked', detail);
+  await r.complaints.history(target, now, user.name || 'Help Desk', 'linked-by', `${c.id} linked as related duplicate`);
+  await r.core.audit(user, 'complaint.link', { complaintId: c.id, targetId: rootId, previousLink: oldLink, reason });
+  return c;
+}
+
 export async function unlink(r, c, user, now) {
   if (!c.linkedTo) return c;
   const was = c.linkedTo;
   c.linkedTo = null; c.linkedSimilarity = null;
   await r.complaints.save(c);
-  await r.complaints.history(c, now, user.name, 'unlinked', `Unlinked from ${was}`);
+  await r.complaints.history(c, now, user.name || 'Help Desk', 'unlinked', `Unlinked from ${was}`);
+  const target = await r.complaints.get(was, { photos: false });
+  if (target) {
+    await r.complaints.history(target, now, user.name || 'Help Desk', 'unlinked-by', `${c.id} unlinked from this complaint`);
+  }
+  await r.core.audit(user, 'complaint.unlink', { complaintId: c.id, unlinkedFrom: was });
   return c;
 }
 
