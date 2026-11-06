@@ -1,4 +1,3 @@
-
 // Production adapter: MySQL 8 through mysql2/promise. Credentials come only from the environment.
 export async function openMysql(cfg) {
   let mysql;
@@ -8,7 +7,7 @@ export async function openMysql(cfg) {
     throw new Error('mysql2 is not installed. Run "npm install" (it is a declared dependency).');
   }
 
-  if (cfg.ssl && !cfg.sslCa) {
+  if (cfg.ssl && !cfg.sslCa && process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false') {
     throw new Error('DB_SSL_CA is required when MySQL SSL is enabled');
   }
 
@@ -27,8 +26,8 @@ export async function openMysql(cfg) {
     multipleStatements: false,
     ssl: cfg.ssl
       ? {
-          ca: cfg.sslCa,
-          rejectUnauthorized: true,
+          ...(cfg.sslCa ? { ca: cfg.sslCa } : {}),
+          rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
         }
       : undefined,
   });

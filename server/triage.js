@@ -14,7 +14,7 @@ const DEV_R = '(?![\\p{L}\\p{M}])';
 export const SAFETY_RULES = [
   { id: 'fire', label: 'Fire', category: 'Other', re: new RegExp(String.raw`\b(fire|fires|flames?|caught fire|on fire)\b|${DEV_L}(आग|आगी)${DEV_R}`, 'iu') },
   { id: 'gas_leak', label: 'Gas leak', category: 'Other', re: new RegExp(String.raw`\bgas\s+(is\s+)?(leak\w*|smell\w*)|\bsmell\w*\s+(of\s+)?gas\b|\blpg\s+leak|गैस\s*(लीक|रिसाव|गळती|वास)`, 'iu') },
-  { id: 'lift_stuck', label: 'Lift stuck', category: 'Lift', re: new RegExp(String.raw`\b(lift|elevator)\b[^.\n]{0,50}\b(stuck|trapped|struck|stopped between)\b|\b(stuck|trapped)\b[^.\n]{0,40}\b(in|inside)\s+(the\s+|a\s+)?(lift|elevator)\b|लिफ्ट[^.\n]{0,30}(फंस|अटक|अडक)|(फंस|अडक)[^.\n]{0,20}लिफ्ट`, 'iu') },
+  { id: 'lift_stuck', label: 'Lift stuck', category: 'Lift', re: new RegExp(String.raw`\b(lift|elevator)\b[^.\n]{0,50}\b(stuck|trapped|entrap\w*|struck|stopped between)\b|\b(stuck|trapped|entrap\w*)\b[^.\n]{0,40}\b(in|inside)\s+(the\s+|a\s+)?(lift|elevator)\b|लिफ्ट[^.\n]{0,30}(फंस|अटक|अडक)|(फंस|अडक)[^.\n]{0,20}लिफ्ट`, 'iu') },
   { id: 'electric_shock', label: 'Electric shock', category: 'Electrical', re: new RegExp(String.raw`\b(electric(al)?\s+)?shock(ed|s)?\b|\belectrocut\w*|current\s+(laga|lag\s*gaya|lagla)|करंट|शॉक`, 'iu') },
 ];
 
@@ -142,6 +142,62 @@ export function findDuplicate(open, c, nowMs) {
     if (match && (!best || sim > best.sim)) best = { o, sim };
   }
   return best ? { candidate: best.o, similarity: Math.round(best.sim * 100) / 100 } : null;
+}
+
+// Find multiple potential duplicates with explanations for staff review or resident warnings.
+export function suggestDuplicates(open, c, nowMs = Date.now(), { maxCandidates = 5 } = {}) {
+  const text = `${c.title || ''} ${c.description || ''}`.trim();
+  const scored = [];
+  for (const o of open) {
+    if (c.id && o.id === c.id) continue;
+    if (o.status === 'resolved') continue;
+    const candText = `${o.title} ${o.description}`;
+    const sim = similarity(text, candText);
+    const sameCat = c.category && o.category ? c.category === o.category : false;
+    const sameFlat = c.flatNo && o.flatNo ? c.flatNo === o.flatNo : false;
+    const sameTower = c.tower && o.tower ? c.tower === o.tower : false;
+
+    let baseScore = sim;
+    if (sameCat) baseScore += 0.15;
+    if (sameFlat) baseScore += 0.25;
+    else if (sameTower) baseScore += 0.1;
+    if (c.category === 'Lift' && sameTower) baseScore += 0.15;
+
+    if (baseScore < 0.2 && sim < 0.2) continue;
+
+    let explanation = '';
+    if (sameFlat && sim >= 0.3) {
+      explanation = `Similar issue reported in flat ${o.flatNo} (${Math.round(sim * 100)}% text match)`;
+    } else if (sameTower && c.category === 'Lift') {
+      explanation = `Tower ${o.tower} lift issue already reported in ${o.id}`;
+    } else if (sameTower && sameCat) {
+      explanation = `Same tower and ${o.category} category (${Math.round(sim * 100)}% match)`;
+    } else if (sameCat && sim >= 0.25) {
+      explanation = `Similar ${o.category} issue reported (${Math.round(sim * 100)}% match)`;
+    } else {
+      explanation = `Possible overlapping issue (${Math.round(sim * 100)}% keyword similarity)`;
+    }
+
+    scored.push({
+      complaint: o,
+      similarity: Math.round(Math.min(0.99, baseScore) * 100) / 100,
+      explanation,
+    });
+  }
+  scored.sort((a, b) => b.similarity - a.similarity);
+  return scored.slice(0, maxCandidates).map((s) => ({
+    id: s.complaint.id,
+    title: s.complaint.title,
+    category: s.complaint.category,
+    status: s.complaint.status,
+    urgency: s.complaint.urgency || s.complaint.priority,
+    flatNo: s.complaint.flatNo,
+    tower: s.complaint.tower,
+    createdAt: s.complaint.createdAt,
+    similarity: s.similarity,
+    explanation: s.explanation,
+    needsReview: s.similarity < 0.6,
+  }));
 }
 
 export const SLA_MINUTES = { Emergency: 15, High: 120, Medium: 480, Low: 1440 };

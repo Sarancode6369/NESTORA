@@ -27,6 +27,10 @@ const MATRIX = [
   ['GET', '/api/audit', null, ['committee', 'helpdesk']],
   ['GET', '/api/notifications', null, ['helpdesk']],
   ['GET', '/api/ai/status', null, ['helpdesk', 'committee']],
+  ['POST', '/api/complaints/analyze', { description: 'Water leaking in bathroom ceiling' }, ['resident', 'helpdesk']],
+  ['POST', '/api/complaints/duplicates/suggest', { description: 'Water leaking' }, ['resident', 'helpdesk']],
+  ['POST', '/api/complaints/CMP-0001/link', { targetId: 'CMP-0002' }, ['helpdesk']],
+  ['POST', '/api/chat', { message: 'Hello' }, ['resident']],
   ['POST', '/api/payments/checkout', {}, ['resident']],
   ['POST', '/api/guest-codes', { guestName: 'Guest', date: '2026-11-03' }, ['resident']],
   ['GET', '/api/visitors', null, ['resident', 'helpdesk', 'guard']],
@@ -107,6 +111,8 @@ test('input validation: malformed JSON, oversize fields, bad enums and bad dates
   const tok = await login('9000000001'); const desk = await login('9000000010');
   assert.equal((await call('POST', '/api/complaints', { token: tok, body: { title: 'x'.repeat(500), description: 'valid description' } })).status, 400);
   assert.equal((await call('POST', '/api/complaints', { token: tok, body: { title: 'Valid', description: 'valid description', category: 'Astrology' } })).status, 400);
+  assert.equal((await call('POST', '/api/complaints', { token: tok, body: { title: 'Valid', description: 'valid description', priority: 'Urgent' } })).status, 400);
+  assert.equal((await call('POST', '/api/complaints/analyze', { token: tok, body: { description: 'hi' } })).status, 400);
   assert.equal((await call('PATCH', '/api/complaints/CMP-0001/category', { token: desk, body: { category: 'Housekeeping' } })).status, 400);
   assert.equal((await call('PATCH', '/api/complaints/CMP-0001/priority', { token: desk, body: { priority: 'Critical' } })).status, 400);
   assert.equal((await call('GET', '/api/amenities?date=not-a-date', { token: tok })).status, 400);

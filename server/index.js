@@ -26,7 +26,7 @@ try {
 
 const ai = createAiFromEnv();
 console.log(ai.groq.configured ? `AI complaint triage: Groq (${ai.groq.model}), keyword fallback if unavailable` : 'AI complaint triage: GROQ_API_KEY not set - deterministic keyword classifier in use');
-const { server, purge } = createApp({ db, classifier: ai.classifier, aiStatus: ai.status });
+const { server, purge } = createApp({ db, classifier: ai.classifier, aiStatus: ai.status, groq: ai.groq });
 purge().catch((e) => console.error('photo purge failed:', e.message));
 setInterval(() => purge().catch((e) => console.error('photo purge failed:', e.message)), 3600 * 1000).unref();
 server.listen(PORT, () => console.log(`NESTORA running at http://localhost:${PORT}  (demo OTP login; test-mode payments)`));
