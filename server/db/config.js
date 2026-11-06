@@ -13,7 +13,8 @@ export function dbConfigFromEnv(env = process.env) {
     host: u.hostname, port: Number(u.port || 3306), database: decodeURIComponent(u.pathname.replace(/^\//, '')),
     user: env.DB_USERNAME || decodeURIComponent(u.username) || undefined,
     password: env.DB_PASSWORD ?? (decodeURIComponent(u.password) || undefined),
-    ssl: u.searchParams.get('ssl') === 'true' || u.searchParams.get('sslmode') === 'require' || env.DB_SSL === 'true',
+    ssl: u.searchParams.get('ssl') === 'true' || u.searchParams.get('sslmode') === 'require' || env.DB_SSL === 'true' || !!env.DB_SSL_CA,
+    sslCa: env.DB_SSL_CA?.replace(/\\n/g, '\n'),
   };
 }
 export const safeDescribe = (c) => `${c.user || '?'}@${c.host}:${c.port}/${c.database}`; // never prints the password

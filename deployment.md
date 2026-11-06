@@ -90,7 +90,7 @@ demo OTP with a real SMS gateway (see TDD, *Limitations*). The demo OTP is not s
 * Set `NODE_ENV=production` and `JWT_SECRET`. This also disables `/api/demo/reset`.
 * Keep **one** app instance or share a single MySQL — the app is stateless except for in-memory OTP/rate-limit counters
   (use a sticky session or move them to Redis before scaling out).
-* Back up MySQL nightly (`mysqldump --single-transaction nestora`). Visitor photos live in the database and are deleted after 90 days by the hourly job.
+* Back up MySQL nightly (`mysqldump --single-transaction nestora_db`). Visitor photos live in the database and are deleted after 90 days by the hourly job.
 * Example systemd unit:
 
 ```ini
